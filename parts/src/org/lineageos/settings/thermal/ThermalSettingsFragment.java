@@ -16,6 +16,7 @@
 package org.lineageos.settings.thermal;
 
 import android.annotation.Nullable;
+import android.app.ActionBar;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
@@ -230,6 +231,7 @@ public class ThermalSettingsFragment extends SettingsBasePreferenceFragment
         private ImageView icon;
         private View rootView;
         private ImageView stateIcon;
+        private ImageView touchIcon;
 
         private ViewHolder(View view) {
             super(view);
@@ -237,6 +239,7 @@ public class ThermalSettingsFragment extends SettingsBasePreferenceFragment
             this.mode = view.findViewById(R.id.app_mode);
             this.icon = view.findViewById(R.id.app_icon);
             this.stateIcon = view.findViewById(R.id.state);
+            this.touchIcon = view.findViewById(R.id.touch);
             this.rootView = view;
 
             view.setTag(this);
@@ -332,6 +335,21 @@ public class ThermalSettingsFragment extends SettingsBasePreferenceFragment
                 return;
             }
 
+            holder.touchIcon.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    TouchSettingsFragment touchSettingsFragment = new TouchSettingsFragment();
+                    Bundle bundle = new Bundle();
+                    bundle.putString("appName", entry.label);
+                    bundle.putString("packageName", entry.info.packageName);
+                    touchSettingsFragment.setArguments(bundle);
+                    getActivity().getFragmentManager().beginTransaction()
+                            .replace(R.id.content_frame, touchSettingsFragment, "touchSettingsFragment")
+                            .addToBackStack(null)
+                            .commit();
+                }
+            });
+
             holder.title.setText(entry.label);
             holder.title.setOnClickListener(v -> holder.mode.performClick());
             mApplicationsState.ensureIcon(entry);
@@ -339,7 +357,15 @@ public class ThermalSettingsFragment extends SettingsBasePreferenceFragment
             int packageState = mThermalUtils.getStateForPackage(entry.info.packageName);
             holder.mode.setTag(entry);
             holder.mode.setSelection(packageState, false);
-            holder.stateIcon.setImageResource(getStateDrawable(packageState));
+            int stateIconDawable = getStateDrawable(mThermalUtils.getStateForPackage(
+                    entry.info.packageName));
+            if (stateIconDawable == R.drawable.ic_thermal_gaming ||
+                    stateIconDawable == R.drawable.ic_thermal_benchmark) {
+                holder.touchIcon.setVisibility(View.VISIBLE);
+            } else {
+                holder.touchIcon.setVisibility(View.GONE);
+            }
+            holder.stateIcon.setImageResource(stateIconDawable);
         }
 
         private void setEntries(List<ApplicationsState.AppEntry> entries,

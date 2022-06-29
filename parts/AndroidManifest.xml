@@ -69,6 +69,12 @@
                 android:resource="@string/thermal_summary" />
         </activity>
 
+        <!-- Pocketservice service -->
+        <service
+            android:name=".doze.PocketService"
+            android:permission="PocketService">
+        </service>
+
     </application>
 
 </manifest>

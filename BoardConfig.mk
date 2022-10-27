@@ -69,6 +69,9 @@ TARGET_NO_RAW10_CUSTOM_FORMAT := true
 # Filesystem
 TARGET_FS_CONFIG_GEN := $(DEVICE_PATH)/configs/config.fs
 
+# Firmware
+-include vendor/xiaomi/munch-firmware/BoardConfigVendor.mk
+
 # Kernel
 BOARD_BOOT_HEADER_VERSION := 3
 BOARD_KERNEL_BASE := 0x00000000

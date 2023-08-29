@@ -46,6 +46,9 @@ persist.log.tag.SYNX-UMD=S
 # Netflix
 ro.netflix.bsp_rev=Q8250-19134-1
 
+# Nfc
+ro.boot.hardware.sku=munch
+
 # Perf
 ro.vendor.qti.core_ctl_max_cpu=4
 ro.vendor.qti.core_ctl_min_cpu=2

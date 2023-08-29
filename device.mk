@@ -271,6 +271,7 @@ PRODUCT_PACKAGES += \
     LineageSDKOverlayDevice \
     LineageSettingsOverlayDevice \
     LineageSystemUIOverlayDevice \
+    NfcOverlayMunch \
     SettingsOverlayDevice \
     SettingsProviderOverlayDevice \
     SystemUIOverlayDevice \

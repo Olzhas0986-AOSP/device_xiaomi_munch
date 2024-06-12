@@ -256,6 +256,7 @@ TARGET_SUPPORTS_OMX_SERVICE := false
 PRODUCT_PACKAGES += \
     ApertureOverlayDevice \
     CarrierConfigOverlayDevice \
+    DeviceAsWebcamResDevice \
     FrameworkResOverlayDevice \
     LineageDialerOverlayDevice \
     LineageSDKOverlayDevice \

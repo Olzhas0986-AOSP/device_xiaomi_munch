@@ -63,8 +63,8 @@ vendor/lib/rfsa/adsp/misound_res_spk.bin
 
 # Audio
 vendor/lib/hw/audio.primary.kona.so
-vendor/lib/liba2dpoffload.so
 vendor/lib/vndk/libxlog.so
+vendor/lib/liba2dpoffload.so
 vendor/lib/libacdb-fts.so
 vendor/lib/libacdbloader.so
 vendor/lib/libacdbrtac.so
@@ -72,9 +72,18 @@ vendor/lib/libadiertac.so
 vendor/lib/libadm.so
 vendor/lib/libaudcal.so
 vendor/lib/libaudio_log_utils.so
+vendor/lib/libaudioparsers.so
 vendor/lib/libaudioroute_ext.so
+vendor/lib/libbatterylistener.so
+vendor/lib/libcomprcapture.so
+vendor/lib/libexthwplugin.so
+vendor/lib/libhdmiedid.so
+vendor/lib/libhdmipassthru.so
+vendor/lib/libhfp.so
 vendor/lib/libqtigef.so
 vendor/lib/libresampler.so
+vendor/lib/libsndmonitor.so
+vendor/lib/libspkrprot.so
 vendor/lib/libssrec.so
 vendor/lib/vendor.qti.hardware.audiohalext@1.0.so
 

@@ -215,9 +215,6 @@ persist.vendor.qfp=false
 persist.vendor.fingerprint.sensor_location=1080|965|115|local:4630946736638489729
 persist.vendor.fingerprint.type=side
 
-# FRP
-ro.frp.pst=/dev/block/bootdevice/by-name/frp
-
 # FUSE
 persist.sys.fuse.passthrough.enable=true
 

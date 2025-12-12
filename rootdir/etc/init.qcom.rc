@@ -561,3 +561,10 @@ service vendor.qti.hardware.display.allocator /vendor/bin/hw/vendor.qti.hardware
     capabilities SYS_NICE
     onrestart restart surfaceflinger
     task_profiles ProcessCapacityHigh HighPerformance
+
+# HTSR Nodes
+on property:persist.vendor.touch_sensitivity_mode=0 && property:sys.boot_completed=1
+    write /sys/devices/virtual/touch/touch_dev/bump_sample_rate 0
+
+on property:persist.vendor.touch_sensitivity_mode=1 && property:sys.boot_completed=1
+    write /sys/devices/virtual/touch/touch_dev/bump_sample_rate 1

@@ -1,3 +1,4 @@
+not_recovery(`
 app_domain(devicesettings_app)
 
 # Access standard system services
@@ -17,10 +18,11 @@ allow devicesettings_app system_app_data_file:{ file lnk_file } create_file_perm
 binder_call(devicesettings_app, gpuservice)
 
 # Allow XiaomiParts to write to sysfs_leds
-allow devicesettings_app sysfs_leds:file w_file_perms;
+allow devicesettings_app sysfs_leds_devicesettings:file w_file_perms;
 
 # Allow XiaomiParts to write to sysfs_thermal
 allow devicesettings_app sysfs_thermal:file w_file_perms;
 
 # Allow XiaomiParts to read/write to sysfs_htsr;
 allow devicesettings_app sysfs_htsr:file rw_file_perms;
+')

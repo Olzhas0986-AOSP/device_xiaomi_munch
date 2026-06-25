@@ -155,10 +155,6 @@ PRODUCT_COPY_FILES += \
 PRODUCT_PACKAGES += \
     libpiex_shim
 
-# Configstore
-PRODUCT_PACKAGES += \
-    disable_configstore
-
 # Consumer IR
 PRODUCT_PACKAGES += \
     android.hardware.ir-service.lineage

@@ -1,0 +1,1 @@
+require board=munch|munch_global|munch_in

@@ -84,7 +84,6 @@ TARGET_KERNEL_NO_GCC := true
 TARGET_KERNEL_SOURCE := kernel/xiaomi/sm8250
 TARGET_KERNEL_CONFIG := \
     vendor/kona-perf_defconfig \
-    vendor/debugfs.config \
     vendor/xiaomi/sm8250-common.config \
     vendor/xiaomi/munch.config
 

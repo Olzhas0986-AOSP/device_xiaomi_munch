@@ -10,9 +10,6 @@ $(call inherit-product, frameworks/native/build/phone-xhdpi-6144-dalvik-heap.mk)
 # Add common definitions for Qualcomm
 $(call inherit-product, hardware/qcom-caf/common/common.mk)
 
-# A/B
-TARGET_IS_VAB := true
-
 # Permissions
 PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/android.hardware.audio.low_latency.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.audio.low_latency.xml \
@@ -54,11 +51,8 @@ PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/android.software.sip.voip.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.software.sip.voip.xml \
     frameworks/native/data/etc/android.software.verified_boot.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.software.verified_boot.xml
 
-ifeq ($(TARGET_IS_VAB),true)
 VULKAN_DEQP_LEVEL := 2020-03-01
-else
-VULKAN_DEQP_LEVEL := 2019-03-01
-endif
+
 PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/android.software.vulkan.deqp.level-$(VULKAN_DEQP_LEVEL).xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.software.vulkan.deqp.level.xml
 
@@ -67,7 +61,6 @@ PRODUCT_AAPT_CONFIG := normal
 PRODUCT_AAPT_PREF_CONFIG := xxhdpi
 
 # A/B
-ifeq ($(TARGET_IS_VAB),true)
 # Inherit virtual_ab_ota product
 $(call inherit-product, $(SRC_TARGET_DIR)/product/virtual_ab_ota/launch_with_vendor_ramdisk.mk)
 
@@ -97,7 +90,6 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     checkpoint_gc \
     otapreopt_script
-endif
 
 # Audio
 PRODUCT_PACKAGES += \
@@ -166,13 +158,11 @@ PRODUCT_PACKAGES += \
     disable_configstore
 
 # Consumer IR
-ifneq ($(TARGET_IS_TABLET),true)
 PRODUCT_PACKAGES += \
     android.hardware.ir-service.lineage
 
 PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/android.hardware.consumerir.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.consumerir.xml
-endif
 
 # Device-specific settings
 PRODUCT_PACKAGES += \
@@ -199,29 +189,15 @@ PRODUCT_PACKAGES += \
     fastbootd
 
 # Fingerprint
-ifneq ($(TARGET_IS_TABLET),true)
 PRODUCT_PACKAGES += \
     android.hardware.biometrics.fingerprint-service.xiaomi
 
 PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/android.hardware.fingerprint.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.fingerprint.xml
 
-ifeq ($(TARGET_HAS_UDFPS),true)
-PRODUCT_PACKAGES += \
-    libudfpshandler
-
-$(call soong_config_set,surfaceflinger,udfps_lib,//hardware/xiaomi:libudfps_extension.xiaomi)
-endif
-endif
-
 # Health
 PRODUCT_PACKAGES += \
     android.hardware.health-service.qti
-
-ifneq ($(TARGET_IS_VAB),true)
-PRODUCT_PACKAGES += \
-    android.hardware.health-service.qti_recovery
-endif
 
 # HotwordEnrollement app permissions
 PRODUCT_COPY_FILES += \
@@ -241,15 +217,11 @@ $(call soong_config_set,libinit,vendor_init_lib,//$(LOCAL_PATH):init_xiaomi_munc
 
 # Input
 PRODUCT_PACKAGES += \
-    Xiaomi_Smart_Pen_Keyboard.kl \
     kona-mtp-snd-card_Button_Jack.kl \
-    uinput-fortsense.kl \
     uinput-fpc.kl \
     uinput-goodix.kl
 
 PRODUCT_PACKAGES += \
-    Xiaomi_Keyboard.idc \
-    uinput-fortsense.idc \
     uinput-fpc.idc \
     uinput-goodix.idc
 
@@ -409,9 +381,7 @@ PRODUCT_PACKAGES += \
     vndservicemanager
 
 # Vibrator
-ifneq ($(TARGET_IS_TABLET),true)
 $(call inherit-product, vendor/qcom/opensource/vibrator/vibrator-vendor-product.mk)
-endif
 
 # Wi-Fi
 PRODUCT_PACKAGES += \

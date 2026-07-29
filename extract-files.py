@@ -60,6 +60,8 @@ blob_fixups: blob_fixups_user_type = {
         .add_needed('libcrypto_shim.so'),
     'vendor/lib64/mediadrm/libwvdrmengine.so': blob_fixup()
         .add_needed('libcrypto_shim.so'),
+    'vendor/etc/msm_irqbalance.conf': blob_fixup()
+        .regex_replace('IGNORED_IRQ=27,23,38', 'IGNORED_IRQ=27,23,38,267,305'),
     (
         'vendor/lib/libstagefright_soft_ac4dec.so', 
         'vendor/lib/libstagefright_soft_ddpdec.so', 

@@ -23,26 +23,26 @@ import android.content.SharedPreferences;
 import android.provider.Settings;
 import androidx.preference.Preference;
 import androidx.preference.Preference.OnPreferenceChangeListener;
-import androidx.preference.PreferenceFragment;
-import androidx.preference.SwitchPreference;
+import androidx.preference.SwitchPreferenceCompat;
+import com.android.settingslib.widget.SettingsBasePreferenceFragment;
 
 import org.lineageos.settings.R;
 import org.lineageos.settings.touchsampling.TouchSamplingUtils;
 import org.lineageos.settings.utils.FileUtils;
 
-public class TouchSamplingSettingsFragment extends PreferenceFragment implements
+public class TouchSamplingSettingsFragment extends SettingsBasePreferenceFragment implements
         OnPreferenceChangeListener {
 
     private static final String HTSR_ENABLE_KEY = "htsr_enable";
     public static final String SHAREDHTSR = "SHAREDHTSR";
 
-    private SwitchPreference mHTSRPreference;
+    private SwitchPreferenceCompat mHTSRPreference;
 
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
       addPreferencesFromResource(R.xml.htsr_settings);
         getActivity().getActionBar().setDisplayHomeAsUpEnabled(true);
-        mHTSRPreference = (SwitchPreference) findPreference(HTSR_ENABLE_KEY);
+        mHTSRPreference = (SwitchPreferenceCompat) findPreference(HTSR_ENABLE_KEY);
         mHTSRPreference.setEnabled(true);
         mHTSRPreference.setOnPreferenceChangeListener(this);
         enableHTSR(0);

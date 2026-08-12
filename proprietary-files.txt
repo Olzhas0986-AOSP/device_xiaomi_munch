@@ -643,10 +643,10 @@ vendor/etc/init/android.hardware.gatekeeper@1.0-service-qti.rc
 vendor/lib64/hw/android.hardware.gatekeeper@1.0-impl-qti.so
 
 # Graphics (Adreno)
-vendor/gpu/kbc/sequence_manifest.bin
-vendor/gpu/kbc/unified_kbcs_32.bin
-vendor/gpu/kbc/unified_kbcs_64.bin
-vendor/gpu/kbc/unified_ksqs.bin
+vendor/gpu/kbc/sequence_manifest.bin|cc050a8058904871b3cfabec74521d42f0a61a1f
+vendor/gpu/kbc/unified_kbcs_32.bin|503228f87adc71131aa8134659b00dffe073e973
+vendor/gpu/kbc/unified_kbcs_64.bin|d63c26959dc02b2efc251953e99dc6e7c32e7f6e
+vendor/gpu/kbc/unified_ksqs.bin|8f77dc004796d58acb959e78f4994c5d6b90baef
 vendor/lib/egl/eglSubDriverAndroid.so|c4133b15d0a36f0775418724e09ce76681baa16d
 vendor/lib/egl/libEGL_adreno.so;SYMLINK=vendor/lib/libEGL_adreno.so|0b6e09ba4dd6aaf221444fcc9adc40d2e597364a
 vendor/lib/egl/libGLESv1_CM_adreno.so|5ab7196d4c8ae861ff484cb6b1f4b5ac3c9738b4
@@ -664,12 +664,12 @@ vendor/lib/libgsl.so|bf7ceef8536752db323775d5a6a093b3f209e8f2
 vendor/lib/libllvm-glnext.so|60c4a1792b96932ca027060a939a7ef155e52e01
 vendor/lib/libllvm-qcom.so|01afd4f1a88d6fcd4e2123aa2e13add8ad4339fc
 vendor/lib/libadreno_app_profiles.so|3f37b410477cec277a803a722dfed59484d4f1bc
-vendor/lib/libkcl.so
-vendor/lib/libkernelmanager.so
+vendor/lib/libkcl.so|4de6a2a00aed99c2f180ae5cf3ec03a96b3be2d7
+vendor/lib/libkernelmanager.so|09e05782cae3b8c5910d069c9d79eb4e58f2801d
 vendor/lib/vendor.qti.qspmhal@1.0.so|736226264356bb89b73d81922f73b7f2b83540bc
 vendor/lib64/libadreno_app_profiles.so|19fdab3bda70acad8e28d82cb1a3ed49c74fcf02
-vendor/lib64/libkcl.so
-vendor/lib64/libkernelmanager.so
+vendor/lib64/libkcl.so|505c6488d7c2c34ac6bcc578e6e90098553e5f4f
+vendor/lib64/libkernelmanager.so|6e34cfed1b61ef27ac3740cf477e1ed836695513
 vendor/lib64/vendor.qti.qspmhal@1.0.so|b24925548b969a7745955bbd48069207aa5889fc
 vendor/lib64/egl/eglSubDriverAndroid.so|2692fd8aac6a9fd49faace2213b2631f7595afad
 vendor/lib64/egl/libEGL_adreno.so;SYMLINK=vendor/lib64/libEGL_adreno.so|74766c6648c64e6af2944fe1a983f1e70f548cbe

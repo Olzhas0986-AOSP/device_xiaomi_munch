@@ -165,6 +165,8 @@ PRODUCT_PACKAGES += \
     vendor.qti.hardware.display.composer-service \
     vendor.qti.hardware.memtrack-service
 
+$(call soong_config_set,qtidisplay,target_uses_tp10_ubwc_for_10bit,true)
+
 # DRM
 PRODUCT_PACKAGES += \
     android.hardware.drm-service.clearkey

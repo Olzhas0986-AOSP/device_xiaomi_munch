@@ -718,7 +718,6 @@ service esepmdaemon /system/vendor/bin/esepmdaemon
 
 on charger
     start qcom-post-boot
-    setprop sys.usb.config adb
 
 #add poweroffhandler
 service poweroffhandler /system/vendor/bin/poweroffhandler

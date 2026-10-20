@@ -19,6 +19,7 @@ package org.lineageos.settings.dirac;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.UserHandle;
 import android.os.SystemClock;
 import android.view.KeyEvent;
@@ -33,14 +34,53 @@ public class DiracUtils {
     private static DiracUtils mInstance;
     private DiracSound mDiracSound;
     private MediaSessionManager mMediaSessionManager;
-    private Handler mHandler = new Handler();
+    private final Handler mHandler = new Handler(Looper.getMainLooper());
     private Context mContext;
 
+    private boolean mEnabled;
+    private Integer mHeadset;
+    private String mPreset;
+    private Integer mScene;
+    private Integer mHifi;
+
     public DiracUtils(Context context) {
-        mContext = context;
-        mMediaSessionManager = (MediaSessionManager) context.getSystemService(Context.MEDIA_SESSION_SERVICE);
-        mDiracSound = new DiracSound(0, 0);
+        mContext = context.getApplicationContext();
+        mMediaSessionManager = mContext.getSystemService(MediaSessionManager.class);
     }
+
+    private interface EffectAction { void run(DiracSound effect); }
+
+    private synchronized boolean withEffect(EffectAction action) {
+        try {
+            if (mDiracSound == null || !mDiracSound.hasControl()) {
+                if (mDiracSound != null) mDiracSound.release();
+                mDiracSound = null;
+                mDiracSound = new DiracSound(0, 0);
+                if (mHeadset != null) mDiracSound.setHeadsetType(mHeadset);
+                if (mPreset != null) applyLevel(mDiracSound, mPreset);
+                if (mScene != null) mDiracSound.setScenario(mScene);
+                if (mHifi != null) {
+                    mDiracSound.setHifiMode(mHifi);
+                    mContext.getSystemService(AudioManager.class)
+                            .setParameters("hifi_mode=" + (mHifi == 1));
+                }
+                mDiracSound.setEffectEnabled(mEnabled);
+                mDiracSound.setMusic(mEnabled ? 1 : 0);
+            }
+            action.run(mDiracSound);
+            return true;
+        } catch (RuntimeException e) {
+            android.util.Log.w("DiracUtils", "MiSound effect unavailable", e);
+            DiracSound failed = mDiracSound;
+            mDiracSound = null;
+            if (failed != null) {
+                try { failed.release(); } catch (RuntimeException ignored) { }
+            }
+            return false;
+        }
+    }
+
+    public boolean isAvailable() { return withEffect(effect -> { }); }
 
     public static synchronized DiracUtils getInstance(Context context) {
         if (mInstance == null) {
@@ -107,42 +147,74 @@ public class DiracUtils {
         }
     }
 
-    public void setEnabled(boolean enable) {
-        mDiracSound.setEnabled(enable);
-        mDiracSound.setMusic(enable ? 1 : 0);
-        if (enable) {
-            refreshPlaybackIfNecessary();
+    public boolean setEnabled(boolean enable) {
+        boolean applied = withEffect(effect -> {
+            effect.setEffectEnabled(enable);
+            effect.setMusic(enable ? 1 : 0);
+        });
+        if (applied) {
+            mEnabled = enable;
+            if (enable) {
+                try { refreshPlaybackIfNecessary(); } catch (RuntimeException e) {
+                    android.util.Log.w("DiracUtils", "Could not refresh playback", e);
+                }
+            }
         }
+        return applied;
     }
 
     public boolean isDiracEnabled() {
-        return mDiracSound != null && mDiracSound.getMusic() == 1;
+        boolean[] enabled = {false};
+        withEffect(effect -> enabled[0] = effect.getMusic() == 1);
+        return enabled[0];
     }
 
-    public void setLevel(String preset) {
-        String[] level = preset.split("\\s*,\\s*");
-
-        for (int band = 0; band <= level.length - 1; band++) {
-            mDiracSound.setLevel(band, Float.valueOf(level[band]));
+    private static void applyLevel(DiracSound effect, String preset) {
+        String[] levels = preset.split(",", -1);
+        if (levels.length != 7) throw new IllegalArgumentException("Expected seven EQ bands");
+        float[] parsed = new float[levels.length];
+        for (int band = 0; band < parsed.length; band++) {
+            parsed[band] = Float.parseFloat(levels[band].trim());
+            if (!Float.isFinite(parsed[band])) throw new IllegalArgumentException("Invalid EQ gain");
         }
+        for (int band = 0; band < parsed.length; band++) effect.setLevel(band, parsed[band]);
     }
 
-    public void setHeadsetType(int paramInt) {
-        mDiracSound.setHeadsetType(paramInt);
+    public boolean setLevel(String preset) {
+        boolean applied = withEffect(effect -> applyLevel(effect, preset));
+        if (applied) mPreset = preset;
+        return applied;
+    }
+
+    public boolean setHeadsetType(int type) {
+        boolean applied = withEffect(effect -> effect.setHeadsetType(type));
+        if (applied) mHeadset = type;
+        return applied;
     }
 
     public boolean getHifiMode() {
-        AudioManager audioManager = mContext.getSystemService(AudioManager.class);
-        return audioManager.getParameters("hifi_mode").contains("true");
+        AudioManager manager = mContext.getSystemService(AudioManager.class);
+        String value = manager.getParameters("hifi_mode");
+        return value != null && value.contains("true");
     }
 
-    public void setHifiMode(int paramInt) {
-        AudioManager audioManager = mContext.getSystemService(AudioManager.class);
-        audioManager.setParameters("hifi_mode=" + (paramInt == 1 ? true : false));
-        mDiracSound.setHifiMode(paramInt);
+    public boolean setHifiMode(int mode) {
+        boolean applied = withEffect(effect -> effect.setHifiMode(mode));
+        if (applied) {
+            try {
+                mContext.getSystemService(AudioManager.class).setParameters("hifi_mode=" + (mode == 1));
+                mHifi = mode;
+            } catch (RuntimeException e) {
+                android.util.Log.w("DiracUtils", "Could not set Hi-Fi mode", e);
+                return false;
+            }
+        }
+        return applied;
     }
 
-    public void setScenario(int sceneInt) {
-        mDiracSound.setScenario(sceneInt);
+    public boolean setScenario(int scene) {
+        boolean applied = withEffect(effect -> effect.setScenario(scene));
+        if (applied) mScene = scene;
+        return applied;
     }
 }

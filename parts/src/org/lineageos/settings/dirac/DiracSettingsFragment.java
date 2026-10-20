@@ -61,6 +61,7 @@ public class DiracSettingsFragment extends SettingsBasePreferenceFragment implem
         boolean enhancerEnabled = mDiracUtils != null ? mDiracUtils.isDiracEnabled() : false;
         mSwitchBar = (MainSwitchPreference) findPreference(PREF_ENABLE);
         if (mSwitchBar != null) {
+            mSwitchBar.setEnabled(mDiracUtils != null && mDiracUtils.isAvailable());
             mSwitchBar.setChecked(enhancerEnabled);
             mSwitchBar.setOnPreferenceChangeListener(this);
         }
@@ -89,7 +90,7 @@ public class DiracSettingsFragment extends SettingsBasePreferenceFragment implem
             if (mDiracUtils == null) return false;
 
             boolean isChecked = (Boolean) newValue;
-            mDiracUtils.setEnabled(isChecked);
+            if (!mDiracUtils.setEnabled(isChecked)) return false;
             mHifi.setEnabled(isChecked);
             mHeadsetType.setEnabled(isChecked);
             mPreset.setEnabled(isChecked);
@@ -100,17 +101,13 @@ public class DiracSettingsFragment extends SettingsBasePreferenceFragment implem
         if (mDiracUtils == null) return false;
         switch (preference.getKey()) {
             case PREF_HEADSET:
-                mDiracUtils.setHeadsetType(Integer.parseInt(newValue.toString()));
-                return true;
+                return mDiracUtils.setHeadsetType(Integer.parseInt(newValue.toString()));
             case PREF_HIFI:
-                mDiracUtils.setHifiMode((Boolean) newValue ? 1 : 0);
-                return true;
+                return mDiracUtils.setHifiMode((Boolean) newValue ? 1 : 0);
             case PREF_PRESET:
-                mDiracUtils.setLevel((String) newValue);
-                return true;
+                return mDiracUtils.setLevel((String) newValue);
             case PREF_SCENE:
-                mDiracUtils.setScenario(Integer.parseInt(newValue.toString()));
-                return true;
+                return mDiracUtils.setScenario(Integer.parseInt(newValue.toString()));
             default:
                 return false;
         }

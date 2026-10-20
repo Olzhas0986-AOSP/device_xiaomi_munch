@@ -1,41 +1,30 @@
 package org.lineageos.settings.dirac;
 
-import android.content.Context;
 import android.service.quicksettings.Tile;
 import android.service.quicksettings.TileService;
 
-import org.lineageos.settings.R;
-
 public class DiracTileService extends TileService {
+    private DiracUtils controller() { return DiracUtils.getInstance(getApplicationContext()); }
 
-    private DiracUtils mDiracUtils;
+    private void updateTile() {
+        Tile tile = getQsTile();
+        if (tile == null) return;
+        boolean enabled = controller().isDiracEnabled();
+        tile.setState(!controller().isAvailable() ? Tile.STATE_UNAVAILABLE
+                : enabled ? Tile.STATE_ACTIVE : Tile.STATE_INACTIVE);
+        tile.updateTile();
+    }
 
     @Override
     public void onStartListening() {
-        mDiracUtils = DiracUtils.getInstance(getApplicationContext());
-
-        Tile tile = getQsTile();
-        if (mDiracUtils.isDiracEnabled()) {
-            tile.setState(Tile.STATE_ACTIVE);
-        } else {
-            tile.setState(Tile.STATE_INACTIVE);
-        }
-
-        tile.updateTile();
         super.onStartListening();
+        updateTile();
     }
 
     @Override
     public void onClick() {
-        Tile tile = getQsTile();
-        if (mDiracUtils.isDiracEnabled()) {
-            mDiracUtils.setEnabled(false);
-            tile.setState(Tile.STATE_INACTIVE);
-        } else {
-            mDiracUtils.setEnabled(true);
-            tile.setState(Tile.STATE_ACTIVE);
-        }
-        tile.updateTile();
         super.onClick();
+        controller().setEnabled(!controller().isDiracEnabled());
+        updateTile();
     }
 }

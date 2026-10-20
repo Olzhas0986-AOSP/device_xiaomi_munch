@@ -36,6 +36,10 @@ public class DiracSound extends AudioEffect {
         super(EFFECT_TYPE_NULL, EFFECT_TYPE_DIRACSOUND, priority, audioSession);
     }
 
+    public void setEffectEnabled(boolean enabled) {
+        checkStatus(setEnabled(enabled));
+    }
+
     public int getMusic() throws IllegalStateException,
             IllegalArgumentException, UnsupportedOperationException,
             RuntimeException {

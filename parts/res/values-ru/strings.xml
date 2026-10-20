@@ -30,9 +30,9 @@
     <string name="refresh_title">Частота обновления для приложений</string>
     <string name="refresh_summary">Установка максимальной частоты обновления для конкретного приложения</string>
     <string name="refresh_default">По умолчанию</string>
-    <string name="refresh_standard">60 Гц</string>   
-    <string name="refresh_extreme">120 Гц</string>    
-    <string name="refresh_land">60 Гц в ландшафтном режиме</string>       
+    <string name="refresh_standard">60 Гц</string>
+    <string name="refresh_extreme">120 Гц</string>
+    <string name="refresh_land">60 Гц в ландшафтном режиме</string>
 
     <!-- HBM settings -->
     <string name="hbm_fragment_title">HBM</string>

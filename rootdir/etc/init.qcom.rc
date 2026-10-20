@@ -376,7 +376,7 @@ on post-fs-data
     # Allow system to modify hbm state
     chown system system /sys/devices/platform/soc/soc:qcom,dsi-display-primary/hbm
     chmod 0660 /sys/devices/platform/soc/soc:qcom,dsi-display-primary/hbm
-    
+
 service nqnfcinfo /system/vendor/bin/nqnfcinfo
     class late_start
     group nfc

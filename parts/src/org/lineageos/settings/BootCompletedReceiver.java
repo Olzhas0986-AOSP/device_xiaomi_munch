@@ -48,18 +48,22 @@ public class BootCompletedReceiver extends BroadcastReceiver {
         } catch (Exception e) {
             Log.d(TAG, "Dirac is not present in system");
         }
-        
+
+        sharedPrefs.edit().putBoolean("hbm", false).remove("last_brightness")
+                .remove("last_brightness_mode").remove("last_raw_brightness").apply();
         ThermalUtils.startService(context);
 
         // Refresh rate
         RefreshUtils.startService(context);
-        
+
         // Touch Sampling
-        TouchSamplingUtils.restoreSamplingValue(context);  
+        TouchSamplingUtils.restoreSamplingValue(context);
 
         // DC Dimming
-        FileUtils.enableService(context);
         boolean dcDimmingEnabled = sharedPrefs.getBoolean(DC_DIMMING_KEY, false);
-        FileUtils.writeLine(DC_DIMMING_NODE, dcDimmingEnabled ? "1" : "0");
+        if (FileUtils.isFileWritable(DC_DIMMING_NODE)) {
+            FileUtils.writeLine(DC_DIMMING_NODE, dcDimmingEnabled ? "1" : "0");
+        }
+        FileUtils.enableService(context);
     }
 }

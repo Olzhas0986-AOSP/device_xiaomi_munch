@@ -17,7 +17,7 @@
 -->
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
 	xmlns:settings="http://schemas.android.com/apk/res/org.lineageos.settings.HBMFragment"
-	android.title="@string/hbm_fragment_title">
+	android:title="@string/hbm_fragment_title">
 
     <PreferenceCategory>
         <SwitchPreferenceCompat
@@ -50,7 +50,7 @@
 
         <Preference
             android:icon="@drawable/ic_info_outline"
-            android:summary="@string/hbm_mode_warning" 
+            android:summary="@string/hbm_mode_warning"
             android:persistent="false" />
     </PreferenceCategory>
 </PreferenceScreen>

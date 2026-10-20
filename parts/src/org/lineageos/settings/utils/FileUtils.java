@@ -159,7 +159,7 @@ public final class FileUtils {
    public static boolean getFileValueAsBoolean(String filename, boolean defValue) {
         String fileValue = readOneLine(filename);
         if(fileValue!=null){
-            return (fileValue.equals("0")?false:true);
+            return fileValue.trim().equals("1");
         }
         return defValue;
     }
@@ -170,22 +170,15 @@ public final class FileUtils {
         }
         return defValue;
     }
-    private static boolean mServiceEnabled = false;
-    private static void startService(Context context) {
-        context.startServiceAsUser(new Intent(context, AutoHBMService.class),
-                UserHandle.CURRENT);
-        mServiceEnabled = true;
-    }
-    private static void stopService(Context context) {
-        mServiceEnabled = false;
-        context.stopServiceAsUser(new Intent(context, AutoHBMService.class),
-                UserHandle.CURRENT);
-    }
     public static void enableService(Context context) {
-        if (HBMFragment.isAUTOHBMEnabled(context) && !mServiceEnabled) {
-            startService(context);
-        } else if (!HBMFragment.isAUTOHBMEnabled(context) && mServiceEnabled) {
-            stopService(context);
+        android.content.SharedPreferences prefs =
+                androidx.preference.PreferenceManager.getDefaultSharedPreferences(context);
+        Intent intent = new Intent(context, AutoHBMService.class);
+        if (prefs.getBoolean(HBMFragment.AUTO_HBM_SWITCH_KEY, false)
+                || prefs.getBoolean(HBMFragment.HBM_SWITCH_KEY, false)) {
+            context.startServiceAsUser(intent, UserHandle.CURRENT);
+        } else {
+            context.stopServiceAsUser(intent, UserHandle.CURRENT);
         }
     }
 }

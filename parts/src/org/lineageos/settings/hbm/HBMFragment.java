@@ -44,6 +44,7 @@ public class HBMFragment extends SettingsBasePreferenceFragment
 
     private final SharedPreferences.OnSharedPreferenceChangeListener mPrefsListener =
             (prefs, key) -> {
+                if (key == null) return;
                 switch (key) {
                     case HBM_SWITCH_KEY:
                         if (mHBMModeSwitch != null) {
@@ -69,12 +70,14 @@ public class HBMFragment extends SettingsBasePreferenceFragment
         // HBM
         mHBMModeSwitch = findPreference(HBM_SWITCH_KEY);
         if (mHBMModeSwitch != null) {
+            mHBMModeSwitch.setEnabled(HBMModeSwitch.getHBM() != null);
             mHBMModeSwitch.setOnPreferenceChangeListener(new HBMModeSwitch(getContext()));
         }
 
         // AutoHBM
         mAutoHBMSwitch = findPreference(AUTO_HBM_SWITCH_KEY);
         if (mAutoHBMSwitch != null) {
+            mAutoHBMSwitch.setEnabled(HBMModeSwitch.getHBM() != null);
             mAutoHBMSwitch.setOnPreferenceChangeListener(this);
             mAutoHBMSwitch.setChecked(prefs.getBoolean(AUTO_HBM_SWITCH_KEY, false));
         }
@@ -120,6 +123,11 @@ public class HBMFragment extends SettingsBasePreferenceFragment
     public boolean onPreferenceChange(Preference preference, Object newValue) {
         if (preference == mAutoHBMSwitch) {
             Boolean enabled = (Boolean) newValue;
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getContext());
+            if (enabled && prefs.getBoolean(HBM_SWITCH_KEY, false)) {
+                if (!HBMModeSwitch.executeHBMAction(getContext(), prefs, false)) return false;
+                prefs.edit().putBoolean(HBM_SWITCH_KEY, false).apply();
+            }
             PreferenceManager.getDefaultSharedPreferences(getContext())
                     .edit()
                     .putBoolean(AUTO_HBM_SWITCH_KEY, enabled)

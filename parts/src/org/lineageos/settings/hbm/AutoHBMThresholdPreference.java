@@ -40,7 +40,7 @@ public class AutoHBMThresholdPreference extends CustomSeekBarPreference {
         mDefaultValueExists = true;
         mDefaultValue = mDefVal;
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(getContext());
-        mValue = Integer.parseInt(sharedPrefs.getString(HBMFragment.AUTO_HBM_THRESHOLD_KEY, "7000"));
+        mValue = AutoHBMService.getPreferenceInt(sharedPrefs, HBMFragment.AUTO_HBM_THRESHOLD_KEY, 7000, 0, 60000);
 
         setPersistent(false);
     }

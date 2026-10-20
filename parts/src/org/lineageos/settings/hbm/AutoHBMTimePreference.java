@@ -29,7 +29,7 @@ public class AutoHBMTimePreference extends CustomSeekBarPreference {
         mDefaultValueExists = true;
         mDefaultValue = mDefVal;
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(getContext());
-        mValue = Integer.parseInt(sharedPrefs.getString(HBMFragment.HBM_DISABLE_TIME_KEY, "1"));
+        mValue = AutoHBMService.getPreferenceInt(sharedPrefs, HBMFragment.HBM_DISABLE_TIME_KEY, 1, 1, 10);
 
         setPersistent(false);
     }

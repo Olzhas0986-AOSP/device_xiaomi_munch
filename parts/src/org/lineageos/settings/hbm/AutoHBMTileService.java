@@ -37,7 +37,8 @@ public class AutoHBMTileService extends TileService {
     private void updateUI(boolean enabled) {
         final Tile tile = getQsTile();
         if (tile != null) {
-            tile.setState(enabled ? Tile.STATE_ACTIVE : Tile.STATE_INACTIVE);
+            tile.setState(HBMModeSwitch.getHBM() == null ? Tile.STATE_UNAVAILABLE
+                    : enabled ? Tile.STATE_ACTIVE : Tile.STATE_INACTIVE);
             tile.updateTile();
         }
     }
@@ -70,6 +71,11 @@ public class AutoHBMTileService extends TileService {
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
         final boolean enabled = !sharedPrefs.getBoolean(AUTO_HBM_KEY, false);
 
+        if (enabled && HBMModeSwitch.getHBM() == null) return;
+        if (enabled && sharedPrefs.getBoolean(HBMFragment.HBM_SWITCH_KEY, false)) {
+            if (!HBMModeSwitch.executeHBMAction(this, sharedPrefs, false)) return;
+            sharedPrefs.edit().putBoolean(HBMFragment.HBM_SWITCH_KEY, false).apply();
+        }
         sharedPrefs.edit().putBoolean(AUTO_HBM_KEY, enabled).apply();
         FileUtils.enableService(this);
     }

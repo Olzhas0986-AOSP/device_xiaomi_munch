@@ -75,7 +75,7 @@ class EqualizerRepository(private val context: Context) {
 
     suspend fun getBandGains(): List<BandGain> =
         withContext(Dispatchers.IO) {
-            val gains = profileSharedPrefs.getString(PREF_PRESET, dolbyController.getPreset())
+            val gains = profileSharedPrefs.getString(PREF_PRESET, dolbyController.getPreset(profile))
             return@withContext if (gains.isNullOrEmpty()) {
                     defaultPreset.bandGains
                 } else {
@@ -88,8 +88,7 @@ class EqualizerRepository(private val context: Context) {
         withContext(Dispatchers.IO) {
             dlog(TAG, "setBandGains($bandGains)")
             val gains = serializeGains(bandGains)
-            dolbyController.setPreset(gains)
-            profileSharedPrefs.edit().putString(PREF_PRESET, gains).apply()
+            dolbyController.setPresetAndPersist(gains, profile)
         }
 
     suspend fun addPreset(preset: Preset) =

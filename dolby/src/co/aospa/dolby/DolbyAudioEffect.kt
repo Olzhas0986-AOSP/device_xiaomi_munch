@@ -18,7 +18,7 @@ class DolbyAudioEffect(priority: Int, audioSession: Int) :
         get() = getIntParam(EFFECT_PARAM_ENABLE) == 1
         set(value) {
             setIntParam(EFFECT_PARAM_ENABLE, if (value) 1 else 0)
-            enabled = value
+            checkStatus(setEnabled(value))
         }
 
     var profile: Int

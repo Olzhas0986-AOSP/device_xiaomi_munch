@@ -70,7 +70,7 @@ public final class ThermalUtils {
         mSharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
 
         WindowManager mWindowManager = context.getSystemService(WindowManager.class);
-        mDisplay = mWindowManager.getDefaultDisplay();
+        mDisplay = mWindowManager == null ? null : mWindowManager.getDefaultDisplay();
 
         try {
             mTouchFeature = ITouchFeature.getService();
@@ -197,6 +197,7 @@ public final class ThermalUtils {
     }
 
     protected boolean setDefaultThermalProfile() {
+        resetTouchModes();
         return FileUtils.writeLine(THERMAL_SCONFIG, THERMAL_STATE_DEFAULT);
     }
 
@@ -232,6 +233,25 @@ public final class ThermalUtils {
         return applied;
     }
 
+    static int[] parseTouchValues(String raw) {
+        int[] result = new int[4];
+        if (raw == null) return result;
+        String[] parts = raw.split(",", -1);
+        if (parts.length != result.length) return result;
+        try {
+            for (int i = 0; i < result.length; i++) {
+                int value = Integer.parseInt(parts[i]);
+                if (value < 0 || value > (i == Constants.TOUCH_GAME_MODE ? 1 : 3)) {
+                    return new int[4];
+                }
+                result[i] = value;
+            }
+        } catch (NumberFormatException e) {
+            return new int[4];
+        }
+        return result;
+    }
+
     private void updateTouchModes(String packageName) {
         String values = mSharedPrefs.getString(packageName, null);
         resetTouchModes();
@@ -240,13 +260,16 @@ public final class ThermalUtils {
             return;
         }
 
-        String[] value = values.split(",");
-        int gameMode = Integer.parseInt(value[Constants.TOUCH_GAME_MODE]);
-        int touchResponse = Integer.parseInt(value[Constants.TOUCH_RESPONSE]);
-        int touchSensitivity = Integer.parseInt(value[Constants.TOUCH_SENSITIVITY]);
-        int touchResistant = Integer.parseInt(value[Constants.TOUCH_RESISTANT]);
-        int touchActiveMode = (touchResponse != 0 && touchSensitivity != 0 && touchResistant != 0)
-                ? 1 : 0;
+        if (mTouchFeature == null) return;
+        int[] value = parseTouchValues(values);
+        int gameMode = value[Constants.TOUCH_GAME_MODE];
+        if (gameMode == 0) return;
+        int touchResponse = value[Constants.TOUCH_RESPONSE];
+        int touchSensitivity = value[Constants.TOUCH_SENSITIVITY];
+        int touchResistant = value[Constants.TOUCH_RESISTANT];
+        int touchActiveMode = gameMode != 0 && (touchResponse != 0
+                || touchSensitivity != 0 || touchResistant != 0) ? 1 : 0;
+        mTouchModeChanged = true;
         try {
             mTouchFeature.setTouchMode(Constants.MODE_TOUCH_TOLERANCE, touchSensitivity);
             mTouchFeature.setTouchMode(Constants.MODE_TOUCH_UP_THRESHOLD, touchResponse);
@@ -257,12 +280,11 @@ public final class ThermalUtils {
             // Do nothing
         }
 
-        mTouchModeChanged = true;
         updateTouchRotation();
     }
 
     protected void resetTouchModes() {
-        if (!mTouchModeChanged) {
+        if (!mTouchModeChanged || mTouchFeature == null) {
             return;
         }
 
@@ -274,14 +296,15 @@ public final class ThermalUtils {
             mTouchFeature.resetTouchMode(Constants.MODE_TOUCH_EDGE_FILTER);
             mTouchFeature.resetTouchMode(Constants.MODE_TOUCH_ROTATION);
         } catch (RemoteException e) {
-            // Do nothing
+            // Keep the flag so the next reset retries partially restored modes.
+            return;
         }
 
         mTouchModeChanged = false;
     }
 
     protected void updateTouchRotation() {
-        if (!mTouchModeChanged) {
+        if (!mTouchModeChanged || mTouchFeature == null || mDisplay == null) {
             return;
         }
 

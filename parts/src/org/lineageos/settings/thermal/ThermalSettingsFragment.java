@@ -202,7 +202,9 @@ public class ThermalSettingsFragment extends SettingsBasePreferenceFragment
     }
 
     private void rebuild() {
-        mSession.rebuild(mActivityFilter, ApplicationsState.ALPHA_COMPARATOR);
+        ArrayList<ApplicationsState.AppEntry> entries =
+                mSession.rebuild(mActivityFilter, ApplicationsState.ALPHA_COMPARATOR);
+        if (entries != null) onRebuildComplete(entries);
     }
 
     private int getStateDrawable(int state) {
@@ -344,7 +346,8 @@ public class ThermalSettingsFragment extends SettingsBasePreferenceFragment
                     bundle.putString("packageName", entry.info.packageName);
                     touchSettingsFragment.setArguments(bundle);
                     getActivity().getSupportFragmentManager().beginTransaction()
-                            .replace(R.id.content_frame, touchSettingsFragment, "touchSettingsFragment")
+                            .replace(com.android.settingslib.collapsingtoolbar.R.id.content_frame,
+                                    touchSettingsFragment, "touchSettingsFragment")
                             .addToBackStack(null)
                             .commit();
                 }

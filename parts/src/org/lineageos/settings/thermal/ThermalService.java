@@ -48,10 +48,14 @@ public class ThermalService extends Service {
     private boolean mDestroyed;
 
     private final SharedPreferences.OnSharedPreferenceChangeListener mPreferenceListener =
-            (preferences, key) -> mHandler.post(() -> {
-                mPreviousApp = null;
-                updateThermalProfile();
-            });
+            (preferences, key) -> {
+                if ("thermal_control".equals(key) || (key != null && key.equals(mPreviousApp))) {
+                    mHandler.post(() -> {
+                        mPreviousApp = null;
+                        updateThermalProfile();
+                    });
+                }
+            };
 
     private final BroadcastReceiver mIntentReceiver = new BroadcastReceiver() {
         @Override

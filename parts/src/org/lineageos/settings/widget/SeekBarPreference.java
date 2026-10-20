@@ -83,7 +83,7 @@ public class SeekBarPreference extends RestrictedPreference
     public void onBindViewHolder(PreferenceViewHolder view) {
         super.onBindViewHolder(view);
 
-        mIconView = (ImageView) view.findViewById(R.id.icon);
+        mIconView = (ImageView) view.findViewById(android.R.id.icon);
         if (mIcon != null) {
             mIconView.setImageDrawable(mIcon);
         }
@@ -220,7 +220,7 @@ public class SeekBarPreference extends RestrictedPreference
 
     @Override
     protected void onRestoreInstanceState(Parcelable state) {
-        if (!state.getClass().equals(SavedState.class)) {
+        if (state == null || !state.getClass().equals(SavedState.class)) {
             // Didn't save state for us in onSaveInstanceState
             super.onRestoreInstanceState(state);
             return;

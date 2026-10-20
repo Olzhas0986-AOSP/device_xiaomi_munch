@@ -41,17 +41,20 @@ public class TouchSamplingSettingsFragment extends SettingsBasePreferenceFragmen
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
       addPreferencesFromResource(R.xml.htsr_settings);
-        getActivity().getActionBar().setDisplayHomeAsUpEnabled(true);
+
         mHTSRPreference = (SwitchPreferenceCompat) findPreference(HTSR_ENABLE_KEY);
-        mHTSRPreference.setEnabled(true);
+        mHTSRPreference.setPersistent(false);
+        mHTSRPreference.setChecked(getActivity().getSharedPreferences(SHAREDHTSR,
+                Context.MODE_PRIVATE).getInt(SHAREDHTSR, 0) == 1);
+        mHTSRPreference.setEnabled(FileUtils.isFileWritable(TouchSamplingUtils.HTSR_FILE));
         mHTSRPreference.setOnPreferenceChangeListener(this);
-        enableHTSR(0);
+
     }
 
     @Override
     public boolean onPreferenceChange(Preference preference, Object newValue) {
         if (HTSR_ENABLE_KEY.equals(preference.getKey())) {
-            enableHTSR((Boolean) newValue ? 1 : 0);
+            return enableHTSR((Boolean) newValue ? 1 : 0);
         }
         return true;
     }
@@ -65,11 +68,12 @@ public class TouchSamplingSettingsFragment extends SettingsBasePreferenceFragmen
         return false;
     }
 
-    private void enableHTSR(Integer enable) {
-            FileUtils.writeLine(TouchSamplingUtils.HTSR_FILE, enable.toString());
+    private boolean enableHTSR(Integer enable) {
+            if (!FileUtils.writeLine(TouchSamplingUtils.HTSR_FILE, enable.toString())) return false;
             SharedPreferences preferences = getActivity().getSharedPreferences(SHAREDHTSR,Context.MODE_PRIVATE);
             SharedPreferences.Editor editor = preferences.edit();
             editor.putInt(SHAREDHTSR, enable);
-            editor.commit();
+            editor.apply();
+            return true;
     }
 }

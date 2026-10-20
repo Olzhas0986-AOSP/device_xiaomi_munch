@@ -6,14 +6,8 @@
 
 # Fingerprint
 on init
-    chmod 0664 /dev/fortsense_fp
-    chown system system /dev/fortsense_fp
-
     chmod 0666 /dev/goodix_fp
     chown system system /dev/goodix_fp
-
-    chown system system /sys/touchpanel/fod_status
-    chmod 0644 /sys/touchpanel/fod_status
 
 on boot
     chown system system /sys/bus/platform/devices/soc:fingerprint_fpc/irq
@@ -26,7 +20,6 @@ on boot
     chown system system /sys/bus/platform/devices/soc:fingerprint_fpc/request_vreg
     chown system system /sys/bus/platform/devices/soc:fingerprint_fpc/simulate_irq
     chown system system /sys/bus/platform/devices/soc:fingerprint_fpc/finger_irq
-    chown system system /sys/bus/platform/devices/soc:fingerprint_fpc/request_vreg
     chown system system /sys/bus/platform/devices/soc:fingerprint_fpc/power_cfg
     chmod 0700 /sys/bus/platform/devices/soc:fingerprint_fpc/irq
     chmod 0700 /sys/bus/platform/devices/soc:fingerprint_fpc/wakeup_enable
@@ -36,11 +29,9 @@ on boot
     chmod 0700 /sys/bus/platform/devices/soc:fingerprint_fpc/request_vreg
     chmod 0700 /sys/bus/platform/devices/soc:fingerprint_fpc/simulate_irq
     chmod 0700 /sys/bus/platform/devices/soc:fingerprint_fpc/finger_irq
-    chmod 0700 /sys/bus/platform/devices/soc:fingerprint_fpc/request_vreg
     chmod 0700 /sys/bus/platform/devices/soc:fingerprint_fpc/power_cfg
 
 on post-fs-data
-    mkdir /data/vendor/fortsense 0770 system system
     mkdir /data/vendor/fpc 0770 system system
     mkdir /data/vendor/fpdump 0770 system system
     mkdir /data/vendor/goodix 0770 system system

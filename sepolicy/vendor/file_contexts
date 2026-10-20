@@ -50,9 +50,6 @@
 # Persist subsystem
 /mnt/vendor/persist/subsys(/.*)?                                                                    u:object_r:vendor_persist_subsys_file:s0
 
-# Sensors
-/dev/akm09970                                                                                       u:object_r:hall_device:s0
-
 # Sensors - data
 /data/vendor/sensor_log(/.*)?                                                                       u:object_r:vendor_sensor_log_data_file:s0
 

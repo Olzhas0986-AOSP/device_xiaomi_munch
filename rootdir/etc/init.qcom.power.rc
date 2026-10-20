@@ -26,6 +26,7 @@
 #
 
 on enable-low-power
+    write /sys/module/lpm_levels/parameters/sleep_disabled 0
     # Enable PowerHAL hint processing
     setprop vendor.powerhal.init 1
 
@@ -163,6 +164,7 @@ on init
     write /proc/sys/kernel/sched_lib_mask_force 255
 
 on charger
+    trigger enable-low-power
     # Enable UFS powersaving
     write /sys/devices/platform/soc/${ro.boot.bootdevice}/clkscale_enable 1
     write /sys/devices/platform/soc/${ro.boot.bootdevice}/clkgate_enable 1

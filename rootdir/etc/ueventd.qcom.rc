@@ -479,5 +479,8 @@ firmware_directories /vendor/firmware_mnt/image/
 /sys/devices/platform/soc/*.i2c/i2c-*/*-*/iio:device*   in_temp_scale                   0664    system  system
 /sys/devices/platform/soc/*.i2c/i2c-*/*-*/iio:device*   in_temp_scale_available         0664    system  system
 
+# Haptics (AW86927 on QUP SE15; adapter numbering can vary)
+/sys/devices/platform/soc/884000.i2c/i2c-*/*-005a custom_wave 0660 system system
+
 # socinfo
 /sys/devices/soc0           serial_number            0000    root    root

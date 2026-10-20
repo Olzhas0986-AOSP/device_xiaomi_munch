@@ -19,219 +19,131 @@ package org.lineageos.settings.refreshrate;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.UserHandle;
-import android.view.Display;
-
-import android.provider.Settings;
-import android.util.Log;
-import android.view.OrientationEventListener;
 import android.content.res.Configuration;
+import android.os.UserHandle;
+import android.provider.Settings;
+
 import androidx.preference.PreferenceManager;
 
 public final class RefreshUtils {
-
     private static final String REFRESH_CONTROL = "refresh_control";
-
-    private static float defaultMaxRate;
-    private static float defaultMinRate;
     private static final String KEY_PEAK_REFRESH_RATE = "peak_refresh_rate";
     private static final String KEY_MIN_REFRESH_RATE = "min_refresh_rate";
-    private Context mContext;
-    protected static boolean isAppInList = false;
+    private static final String SAVED_PEAK = "refresh_saved_peak";
+    private static final String SAVED_MIN = "refresh_saved_min";
+    private static final String[] PREFIXES = {
+        "refresh.standard=", "refresh.extreme=", "refresh.land="
+    };
 
     protected static final int STATE_DEFAULT = 0;
     protected static final int STATE_STANDARD = 1;
     protected static final int STATE_EXTREME = 2;
     protected static final int STATE_LAND = 3;
 
-    private static final float REFRESH_STATE_DEFAULT = 120f;
-    private static final float REFRESH_STATE_STANDARD = 60f;
-    private static final float REFRESH_STATE_EXTREME = 120f;
-    private static final float REFRESH_STATE_LAND = 60f;
-
-    private static final String REFRESH_STANDARD = "refresh.standard=";
-    private static final String REFRESH_EXTREME = "refresh.extreme=";
-    private static final String REFRESH_LAND = "refresh.land=";
-
-    private SharedPreferences mSharedPrefs;
-
-    private OrientationEventListener orientationListener;
-    private boolean isLandscape = false;
+    private final Context mContext;
+    private final SharedPreferences mSharedPrefs;
+    private boolean mOverrideActive;
 
     protected RefreshUtils(Context context) {
-        mSharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
         mContext = context;
+        mSharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
     }
 
     public static void startService(Context context) {
-        context.startServiceAsUser(new Intent(context, RefreshService.class),
-                UserHandle.CURRENT);
+        context.startServiceAsUser(new Intent(context, RefreshService.class), UserHandle.CURRENT);
     }
 
-    private void writeValue(String profiles) {
-        mSharedPrefs.edit().putString(REFRESH_CONTROL, profiles).apply();
-    }
-
-    protected void getOldRate(){
-        defaultMaxRate = Settings.System.getFloat(mContext.getContentResolver(), KEY_PEAK_REFRESH_RATE, REFRESH_STATE_DEFAULT);
-        defaultMinRate = Settings.System.getFloat(mContext.getContentResolver(), KEY_MIN_REFRESH_RATE, REFRESH_STATE_DEFAULT);
-    }
-
-    private float getUserMaxRefreshRate() {
-        return Settings.System.getFloat(mContext.getContentResolver(), KEY_PEAK_REFRESH_RATE, REFRESH_STATE_DEFAULT);
-    }
-
-    private float getUserMinRefreshRate() {
-        return Settings.System.getFloat(mContext.getContentResolver(), KEY_MIN_REFRESH_RATE, REFRESH_STATE_DEFAULT);
-    }
-    
-    private void initializeOrientationListener(String packageName) {
-        if (orientationListener != null) {
-            orientationListener.disable();
-        }
-
-        orientationListener = new OrientationEventListener(mContext) {
-            @Override
-            public void onOrientationChanged(int orientation) {
-                if (orientation == ORIENTATION_UNKNOWN) {
-                    return;
-                }
-
-                int currentOrientation = mContext.getResources().getConfiguration().orientation;
-                boolean newIsLandscape = (currentOrientation == Configuration.ORIENTATION_LANDSCAPE);
-                if (newIsLandscape != isLandscape) {
-                    isLandscape = newIsLandscape;
-                    adjustRefreshRateForOrientation(packageName);
-                }
+    private String[] getProfiles() {
+        String value = mSharedPrefs.getString(REFRESH_CONTROL, "");
+        String[] modes = value.split(":", -1);
+        if (modes.length == PREFIXES.length) {
+            boolean valid = true;
+            for (int i = 0; i < modes.length; i++) {
+                valid &= modes[i].startsWith(PREFIXES[i]);
             }
-        };
-
-        if (orientationListener.canDetectOrientation()) {
-            orientationListener.enable();
-        } else {
-            orientationListener.disable();
+            if (valid) return modes;
         }
+        modes = PREFIXES.clone();
+        mSharedPrefs.edit().putString(REFRESH_CONTROL, String.join(":", modes)).apply();
+        return modes;
     }
 
-    private void adjustRefreshRateForOrientation(String packageName) {
-        float minRate = defaultMinRate;
-        float maxRate = isLandscape && isAppInList ? REFRESH_STATE_LAND : REFRESH_STATE_EXTREME;
-        setRefreshRate(minRate, maxRate);
-    }
-
-    protected void checkOrientationAndSetRate(String packageName) {
-        int currentOrientation = mContext.getResources().getConfiguration().orientation;
-        boolean isCurrentlyLandscape = (currentOrientation == Configuration.ORIENTATION_LANDSCAPE);
-        float currentMaxRate = Settings.System.getFloat(mContext.getContentResolver(), KEY_PEAK_REFRESH_RATE, REFRESH_STATE_DEFAULT);
-
-        if (isCurrentlyLandscape && isAppInList) {
-            setLandscapeModeRefreshRate();
-        } else if (!isCurrentlyLandscape && isAppInList) {
-            setPortraitModeRefreshRate();
+    private boolean containsPackage(String mode, int index, String packageName) {
+        for (String entry : mode.substring(PREFIXES[index].length()).split(",")) {
+            if (entry.equals(packageName)) return true;
         }
-    }
-
-    private void setLandscapeModeRefreshRate() {
-        Settings.System.putFloat(mContext.getContentResolver(), KEY_PEAK_REFRESH_RATE, REFRESH_STATE_LAND);
-        Settings.System.putFloat(mContext.getContentResolver(), KEY_MIN_REFRESH_RATE, REFRESH_STATE_LAND);
-    }
-
-    private void setPortraitModeRefreshRate() {
-        Settings.System.putFloat(mContext.getContentResolver(), KEY_PEAK_REFRESH_RATE, REFRESH_STATE_EXTREME);
-        Settings.System.putFloat(mContext.getContentResolver(), KEY_MIN_REFRESH_RATE, REFRESH_STATE_EXTREME);
-    }
-
-    private void setRefreshRate(float minRate, float maxRate) {
-        if (minRate > maxRate) {
-            minRate = maxRate;
-        }
-        Settings.System.putFloat(mContext.getContentResolver(), KEY_MIN_REFRESH_RATE, minRate);
-        Settings.System.putFloat(mContext.getContentResolver(), KEY_PEAK_REFRESH_RATE, maxRate);
-    }
-
-
-    private String getValue() {
-        String value = mSharedPrefs.getString(REFRESH_CONTROL, null);
-
-        if (value == null || value.isEmpty()) {
-            value = REFRESH_STANDARD + ":" + REFRESH_EXTREME + ":" + REFRESH_LAND;
-            writeValue(value);
-        }
-
-        String[] modes = value.split(":");
-        if (modes.length < 3) {
-            modes = new String[] {
-                modes.length > 0 ? modes[0] : REFRESH_STANDARD,
-                modes.length > 1 ? modes[1] : REFRESH_EXTREME,
-                modes.length > 2 ? modes[2] : REFRESH_LAND
-            };
-            value = String.join(":", modes);
-            writeValue(value);
-        }
-        return value;
+        return false;
     }
 
     protected void writePackage(String packageName, int mode) {
-        String value = getValue();
-        value = value.replace(packageName + ",", "");
-        String[] modes = value.split(":");
-        String finalString;
-
-        switch (mode) {
-            case STATE_STANDARD:
-                modes[0] = modes[0] + packageName + ",";
-                break;
-            case STATE_EXTREME:
-                modes[1] = modes[1] + packageName + ",";
-                break;
-            case STATE_LAND:
-                modes[2] = modes[2] + packageName + ",";
-                break;
-
+        if (packageName == null || packageName.isEmpty() || mode < 0 || mode > STATE_LAND) return;
+        String[] modes = getProfiles();
+        for (int i = 0; i < modes.length; i++) {
+            StringBuilder result = new StringBuilder(PREFIXES[i]);
+            for (String entry : modes[i].substring(PREFIXES[i].length()).split(",")) {
+                if (!entry.isEmpty() && !entry.equals(packageName)) result.append(entry).append(',');
+            }
+            if (mode == i + 1) result.append(packageName).append(',');
+            modes[i] = result.toString();
         }
-
-        finalString = modes[0] + ":" + modes[1] + ":" + modes[2];
-
-        writeValue(finalString);
+        mSharedPrefs.edit().putString(REFRESH_CONTROL, String.join(":", modes)).apply();
     }
 
     protected int getStateForPackage(String packageName) {
-        String value = getValue();
-        String[] modes = value.split(":");
-        int state = STATE_DEFAULT;
-        if (modes[0].contains(packageName + ",")) {
-            state = STATE_STANDARD;
-        } else if (modes[1].contains(packageName + ",")) {
-            state = STATE_EXTREME;
-        } else if (modes[2].contains(packageName + ",")) {
-            state = STATE_LAND;
+        if (packageName == null || packageName.isEmpty()) return STATE_DEFAULT;
+        String[] modes = getProfiles();
+        for (int i = 0; i < modes.length; i++) {
+            if (containsPackage(modes[i], i, packageName)) return i + 1;
         }
-        return state;
+        return STATE_DEFAULT;
     }
 
     protected void setRefreshRate(String packageName) {
-        String value = getValue();
-        String[] modes = value.split(":");
-        float maxRate = defaultMaxRate;
-        float minRate = defaultMinRate;
-        isAppInList = false;
-
-        if (value != null) {
-            modes = value.split(":");
-
-            if (modes[0].contains(packageName + ",")) {
-                maxRate = REFRESH_STATE_STANDARD;
-                isAppInList = true;
-            } else if (modes[1].contains(packageName + ",")) {
-                maxRate = REFRESH_STATE_EXTREME;
-                isAppInList = true;
-            } else if (modes[2].contains(packageName + ",")) {
-                initializeOrientationListener(packageName);
-                isAppInList = true;
-                return;
-            }
+        int state = getStateForPackage(packageName);
+        if (state == STATE_DEFAULT) {
+            restoreDefaultRate();
+            return;
         }
-	    Settings.System.putFloat(mContext.getContentResolver(), KEY_MIN_REFRESH_RATE, minRate);
-        Settings.System.putFloat(mContext.getContentResolver(), KEY_PEAK_REFRESH_RATE, maxRate);
+        if (!mOverrideActive) {
+            // Persist the original strings, including an absent setting, across process death.
+            if (!mSharedPrefs.contains(SAVED_PEAK)) {
+                mSharedPrefs.edit()
+                        .putString(SAVED_PEAK, readSetting(KEY_PEAK_REFRESH_RATE))
+                        .putString(SAVED_MIN, readSetting(KEY_MIN_REFRESH_RATE)).apply();
+            }
+            mOverrideActive = true;
+        }
+        boolean landscape = mContext.getResources().getConfiguration().orientation
+                == Configuration.ORIENTATION_LANDSCAPE;
+        float max = state == STATE_STANDARD || (state == STATE_LAND && landscape) ? 60f : 120f;
+        float min = 0f;
+        try {
+            String savedMin = mSharedPrefs.getString(SAVED_MIN, "");
+            if (!savedMin.isEmpty()) min = Float.parseFloat(savedMin);
+        } catch (NumberFormatException ignored) { }
+        if (!Float.isFinite(min) || min < 0f) min = 0f;
+        putSetting(KEY_MIN_REFRESH_RATE, Float.toString(Math.min(min, max)));
+        putSetting(KEY_PEAK_REFRESH_RATE, Float.toString(max));
+    }
+
+    private String readSetting(String key) {
+        String value = Settings.System.getString(mContext.getContentResolver(), key);
+        return value == null ? "" : value;
+    }
+
+    private void putSetting(String key, String value) {
+        if (!value.equals(readSetting(key))) {
+            Settings.System.putString(mContext.getContentResolver(), key,
+                    value.isEmpty() ? null : value);
+        }
+    }
+
+    protected void restoreDefaultRate() {
+        if (mSharedPrefs.contains(SAVED_PEAK)) {
+            putSetting(KEY_MIN_REFRESH_RATE, mSharedPrefs.getString(SAVED_MIN, ""));
+            putSetting(KEY_PEAK_REFRESH_RATE, mSharedPrefs.getString(SAVED_PEAK, ""));
+            mSharedPrefs.edit().remove(SAVED_MIN).remove(SAVED_PEAK).apply();
+        }
+        mOverrideActive = false;
     }
 }

@@ -9,6 +9,7 @@
 #include "include/libinit_utils.h"
 
 #include <sys/sysinfo.h>
+#include <cstdint>
 #include <string>
 
 #define GB(b) (b * 1024ull * 1024 * 1024)
@@ -57,14 +58,17 @@ static const dalvik_heap_info dalvik_heap_info_2048 = {
 };
 
 void set_dalvik_heap() {
-    struct sysinfo sys;
+    struct sysinfo sys {};
     const dalvik_heap_info* dhi;
 
-    sysinfo(&sys);
+    if (sysinfo(&sys) != 0) {
+        return;
+    }
+    const uint64_t totalram = static_cast<uint64_t>(sys.totalram) * sys.mem_unit;
 
-    if (sys.totalram > GB(5)) {
+    if (totalram > GB(5)) {
         dhi = &dalvik_heap_info_6144;
-    } else if (sys.totalram > GB(3)) {
+    } else if (totalram > GB(3)) {
         dhi = &dalvik_heap_info_4096;
     } else {
         dhi = &dalvik_heap_info_2048;

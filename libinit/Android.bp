@@ -15,10 +15,7 @@ cc_library_static {
     header_libs: ["libvariant_headers"],
     whole_static_libs: [
         "libbase",
-    ] + select(soong_config_variable("xiaomi_munch", "variant_lib"), {
-        any @ lib: [lib],
-        default: ["libvariant_default"],
-    }),
+    ],
     include_dirs: ["system/core/init"],
     recovery_available: true,
 }

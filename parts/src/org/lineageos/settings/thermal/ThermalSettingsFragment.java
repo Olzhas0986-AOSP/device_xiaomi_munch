@@ -75,7 +75,6 @@ public class ThermalSettingsFragment extends SettingsBasePreferenceFragment
 
         mApplicationsState = ApplicationsState.getInstance(getActivity().getApplication());
         mSession = mApplicationsState.newSession(this);
-        mSession.onResume();
         mActivityFilter = new ActivityFilter(getActivity().getPackageManager());
 
         mAllPackagesAdapter = new AllPackagesAdapter(getActivity());
@@ -103,14 +102,20 @@ public class ThermalSettingsFragment extends SettingsBasePreferenceFragment
     public void onResume() {
         super.onResume();
         getActivity().setTitle(getResources().getString(R.string.thermal_title));
+        mSession.onResume();
         rebuild();
+    }
+
+    @Override
+    public void onPause() {
+        mSession.onPause();
+        super.onPause();
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
 
-        mSession.onPause();
         mSession.onDestroy();
     }
 
@@ -155,16 +160,7 @@ public class ThermalSettingsFragment extends SettingsBasePreferenceFragment
 
     @Override
     public void setDivider(@androidx.annotation.Nullable final Drawable divider) {
-        RecyclerView list = getListView();
-        if (list == null) {
-            View root = getView();
-            if (root != null) {
-                root.post(() -> setDivider(divider));
-            }
-            return;
-        }
-
-        super.setDivider(divider);
+        // This screen supplies its own RecyclerView, without preference dividers.
     }
 
     private void handleAppEntries(List<ApplicationsState.AppEntry> entries) {
@@ -176,7 +172,7 @@ public class ThermalSettingsFragment extends SettingsBasePreferenceFragment
 
         for (int i = 0; i < entries.size(); i++) {
             final ApplicationInfo info = entries.get(i).info;
-            final String label = (String) info.loadLabel(pm);
+            final String label = info.loadLabel(pm).toString();
             final String sectionIndex;
 
             if (!info.enabled) {
@@ -341,8 +337,8 @@ public class ThermalSettingsFragment extends SettingsBasePreferenceFragment
             mApplicationsState.ensureIcon(entry);
             holder.icon.setImageDrawable(entry.icon);
             int packageState = mThermalUtils.getStateForPackage(entry.info.packageName);
-            holder.mode.setSelection(packageState, false);
             holder.mode.setTag(entry);
+            holder.mode.setSelection(packageState, false);
             holder.stateIcon.setImageResource(getStateDrawable(packageState));
         }
 
@@ -361,6 +357,9 @@ public class ThermalSettingsFragment extends SettingsBasePreferenceFragment
         @Override
         public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
             final ApplicationsState.AppEntry entry = (ApplicationsState.AppEntry) parent.getTag();
+            if (entry == null) {
+                return;
+            }
             int currentState = mThermalUtils.getStateForPackage(entry.info.packageName);
             if (currentState != position) {
                 mThermalUtils.writePackage(entry.info.packageName, position);

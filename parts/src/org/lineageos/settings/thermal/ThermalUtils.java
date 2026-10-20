@@ -73,9 +73,28 @@ public final class ThermalUtils {
         String value = mSharedPrefs.getString(THERMAL_CONTROL, null);
 
         if (value != null) {
-             String[] modes = value.split(":");
-             if (modes.length < 5) value = null;
-         }
+            String[] modes = value.split(":", -1);
+            // Preserve assignments made before the streaming profile was added.
+            if (modes.length == 5) {
+                value += ":" + THERMAL_STREAMING;
+                modes = value.split(":", -1);
+            }
+            String[] prefixes = {THERMAL_BENCHMARK, THERMAL_BROWSER, THERMAL_CAMERA,
+                    THERMAL_DIALER, THERMAL_GAMING, THERMAL_STREAMING};
+            if (modes.length != prefixes.length) {
+                value = null;
+            } else {
+                for (int i = 0; i < prefixes.length; i++) {
+                    if (!modes[i].startsWith(prefixes[i])) {
+                        value = null;
+                        break;
+                    }
+                }
+            }
+            if (value != null && !value.equals(mSharedPrefs.getString(THERMAL_CONTROL, null))) {
+                writeValue(value);
+            }
+        }
 
         if (value == null || value.isEmpty()) {
             value = THERMAL_BENCHMARK + ":" + THERMAL_BROWSER + ":" + THERMAL_CAMERA + ":" +
@@ -87,8 +106,16 @@ public final class ThermalUtils {
 
     protected void writePackage(String packageName, int mode) {
         String value = getValue();
-        value = value.replace(packageName + ",", "");
-        String[] modes = value.split(":");
+        String[] modes = value.split(":", -1);
+        for (int i = 0; i < modes.length; i++) {
+            int separator = modes[i].indexOf('=');
+            if (separator < 0) {
+                return;
+            }
+            String packages = "," + modes[i].substring(separator + 1);
+            packages = packages.replace("," + packageName + ",", ",");
+            modes[i] = modes[i].substring(0, separator + 1) + packages.substring(1);
+        }
         String finalString;
 
         switch (mode) {
@@ -120,51 +147,57 @@ public final class ThermalUtils {
 
     protected int getStateForPackage(String packageName) {
         String value = getValue();
-        String[] modes = value.split(":");
+        String[] modes = value.split(":", -1);
         int state = STATE_DEFAULT;
-        if (modes[0].contains(packageName + ",")) {
+        if (containsPackage(modes[0], packageName)) {
             state = STATE_BENCHMARK;
-        } else if (modes[1].contains(packageName + ",")) {
+        } else if (containsPackage(modes[1], packageName)) {
             state = STATE_BROWSER;
-        } else if (modes[2].contains(packageName + ",")) {
+        } else if (containsPackage(modes[2], packageName)) {
             state = STATE_CAMERA;
-        } else if (modes[3].contains(packageName + ",")) {
+        } else if (containsPackage(modes[3], packageName)) {
             state = STATE_DIALER;
-        } else if (modes[4].contains(packageName + ",")) {
+        } else if (containsPackage(modes[4], packageName)) {
             state = STATE_GAMING;
-        } else if (modes[5].contains(packageName + ",")) {
+        } else if (containsPackage(modes[5], packageName)) {
             state = STATE_STREAMING;
         }
 
         return state;
     }
 
-    protected void setDefaultThermalProfile() {
-        FileUtils.writeLine(THERMAL_SCONFIG, THERMAL_STATE_DEFAULT);
+    private static boolean containsPackage(String mode, String packageName) {
+        int separator = mode.indexOf('=');
+        return separator >= 0 && ("," + mode.substring(separator + 1))
+                .contains("," + packageName + ",");
     }
 
-    protected void setThermalProfile(String packageName) {
+    protected boolean setDefaultThermalProfile() {
+        return FileUtils.writeLine(THERMAL_SCONFIG, THERMAL_STATE_DEFAULT);
+    }
+
+    protected boolean setThermalProfile(String packageName) {
         String value = getValue();
         String modes[];
         String state = THERMAL_STATE_DEFAULT;
 
         if (value != null) {
-            modes = value.split(":");
+            modes = value.split(":", -1);
 
-            if (modes[0].contains(packageName + ",")) {
+            if (containsPackage(modes[0], packageName)) {
                 state = THERMAL_STATE_BENCHMARK;
-            } else if (modes[1].contains(packageName + ",")) {
+            } else if (containsPackage(modes[1], packageName)) {
                 state = THERMAL_STATE_BROWSER;
-            } else if (modes[2].contains(packageName + ",")) {
+            } else if (containsPackage(modes[2], packageName)) {
                 state = THERMAL_STATE_CAMERA;
-            } else if (modes[3].contains(packageName + ",")) {
+            } else if (containsPackage(modes[3], packageName)) {
                 state = THERMAL_STATE_DIALER;
-            } else if (modes[4].contains(packageName + ",")) {
+            } else if (containsPackage(modes[4], packageName)) {
                 state = THERMAL_STATE_GAMING;
-            } else if (modes[5].contains(packageName + ",")) {
+            } else if (containsPackage(modes[5], packageName)) {
                 state = THERMAL_STATE_STREAMING;
             }
         }
-        FileUtils.writeLine(THERMAL_SCONFIG, state);
+        return FileUtils.writeLine(THERMAL_SCONFIG, state);
     }
 }

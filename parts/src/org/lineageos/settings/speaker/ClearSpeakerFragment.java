@@ -57,6 +57,10 @@ public class ClearSpeakerFragment extends SettingsBasePreferenceFragment impleme
     public boolean onPreferenceChange(Preference preference, Object newValue) {
         if (preference == mClearSpeakerPref) {
             boolean value = (Boolean) newValue;
+            if (!value) {
+                stopPlaying();
+                return true;
+            }
             if (value && startPlaying()) {
                 mHandler.removeCallbacksAndMessages(null);
                 mHandler.postDelayed(this::stopPlaying, PLAY_DURATION_MS);
@@ -74,39 +78,40 @@ public class ClearSpeakerFragment extends SettingsBasePreferenceFragment impleme
 
     public boolean startPlaying() {
         getActivity().setVolumeControlStream(AudioManager.STREAM_MUSIC);
-        mMediaPlayer = new MediaPlayer();
-        mMediaPlayer.setAudioAttributes(new AudioAttributes.Builder()
-                .setUsage(AudioAttributes.USAGE_MEDIA)
-                .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                .build());
-        mMediaPlayer.setLooping(true);
-        try (AssetFileDescriptor afd = getResources().openRawResourceFd(
-                R.raw.clear_speaker_sound)) {
-            mMediaPlayer.setDataSource(afd);
-            mMediaPlayer.setVolume(1.0f, 1.0f);
-            mMediaPlayer.prepare();
-            mMediaPlayer.start();
-            mClearSpeakerPref.setEnabled(false);
-        } catch (IOException | IllegalArgumentException e) {
+        stopPlaying();
+        try {
+            mMediaPlayer = new MediaPlayer();
+            mMediaPlayer.setAudioAttributes(new AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_MEDIA)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                    .build());
+            mMediaPlayer.setLooping(true);
+            try (AssetFileDescriptor afd = getResources().openRawResourceFd(
+                    R.raw.clear_speaker_sound)) {
+                mMediaPlayer.setDataSource(afd);
+                mMediaPlayer.setVolume(1.0f, 1.0f);
+                mMediaPlayer.prepare();
+                mMediaPlayer.start();
+                mClearSpeakerPref.setEnabled(false);
+            }
+        } catch (IOException | RuntimeException e) {
             Log.e(TAG, "Failed to play speaker clean sound!", e);
+            stopPlaying();
             return false;
         }
         return true;
     }
 
     public void stopPlaying() {
-        if (mMediaPlayer != null && mMediaPlayer.isPlaying()) {
-            try {
-                mMediaPlayer.stop();
-            } catch (IllegalStateException e) {
-                Log.e(TAG, "Failed to stop media player!", e);
-            } finally {
-                mMediaPlayer.reset();
-                mMediaPlayer.release();
-                mMediaPlayer = null;
-            }
+        mHandler.removeCallbacksAndMessages(null);
+        if (mMediaPlayer != null) {
+            // release() also handles prepared, completed and error states.
+            mMediaPlayer.release();
+            mMediaPlayer = null;
         }
-        mClearSpeakerPref.setEnabled(true);
-        mClearSpeakerPref.setChecked(false);
+        if (mClearSpeakerPref != null) {
+            mClearSpeakerPref.setEnabled(true);
+            mClearSpeakerPref.setChecked(false);
+        }
     }
 }

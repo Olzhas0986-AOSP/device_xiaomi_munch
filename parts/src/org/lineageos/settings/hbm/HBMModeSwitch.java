@@ -28,6 +28,12 @@ public class HBMModeSwitch implements OnPreferenceChangeListener {
         return FileUtils.isFileWritable(BACKLIGHT_NODE) ? BACKLIGHT_NODE : null;
     }
 
+    public static boolean isEnabled(Context context) {
+        boolean requested = PreferenceManager.getDefaultSharedPreferences(context)
+                .getBoolean(HBMFragment.HBM_SWITCH_KEY, false);
+        return FileUtils.getFileValueAsBoolean(HBM_NODE, requested);
+    }
+
     @Override
     public boolean onPreferenceChange(Preference preference, Object newValue) {
         boolean enabled = (Boolean) newValue;

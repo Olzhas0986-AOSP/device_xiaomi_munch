@@ -23,6 +23,7 @@ import android.service.quicksettings.TileService;
 import android.widget.Toast;
 import androidx.preference.PreferenceManager;
 import org.lineageos.settings.R;
+import org.lineageos.settings.hbm.HBMModeSwitch;
 import org.lineageos.settings.utils.FileUtils;
 
 public class DcDimmingTileService extends TileService {
@@ -41,7 +42,8 @@ public class DcDimmingTileService extends TileService {
     private void updateUI(boolean enabled) {
         final Tile tile = getQsTile();
         if (tile != null) {
-            tile.setState(enabled ? Tile.STATE_ACTIVE : Tile.STATE_INACTIVE);
+            tile.setState(!FileUtils.isFileWritable(DC_DISPLAY_NODE) ? Tile.STATE_UNAVAILABLE
+                    : enabled ? Tile.STATE_ACTIVE : Tile.STATE_INACTIVE);
             tile.updateTile();
         }
     }
@@ -72,9 +74,10 @@ public class DcDimmingTileService extends TileService {
         super.onClick();
 
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
-        boolean hbmEnabled = sharedPrefs.getBoolean(HBM_KEY, false);
+        boolean hbmEnabled = HBMModeSwitch.isEnabled(this);
+        final boolean enabled = !sharedPrefs.getBoolean(DC_DIMMING_KEY, false);
 
-        if (hbmEnabled) {
+        if (enabled && hbmEnabled) {
             Toast.makeText(
                     this,
                     R.string.dc_dimming_disable_hbm_first,
@@ -83,9 +86,8 @@ public class DcDimmingTileService extends TileService {
             return;
         }
 
-        final boolean enabled = !sharedPrefs.getBoolean(DC_DIMMING_KEY, false);
-
-        FileUtils.writeLine(DC_DISPLAY_NODE, enabled ? "1" : "0");
-        sharedPrefs.edit().putBoolean(DC_DIMMING_KEY, enabled).apply();
+        if (FileUtils.writeLine(DC_DISPLAY_NODE, enabled ? "1" : "0")) {
+            sharedPrefs.edit().putBoolean(DC_DIMMING_KEY, enabled).apply();
+        }
     }
 }

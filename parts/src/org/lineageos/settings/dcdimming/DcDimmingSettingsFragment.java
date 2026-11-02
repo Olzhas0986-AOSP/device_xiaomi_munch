@@ -25,6 +25,7 @@ import androidx.preference.PreferenceManager;
 import androidx.preference.SwitchPreferenceCompat;
 import com.android.settingslib.widget.SettingsBasePreferenceFragment;
 import org.lineageos.settings.R;
+import org.lineageos.settings.hbm.HBMModeSwitch;
 import org.lineageos.settings.utils.FileUtils;
 
 public class DcDimmingSettingsFragment extends SettingsBasePreferenceFragment implements
@@ -49,7 +50,7 @@ public class DcDimmingSettingsFragment extends SettingsBasePreferenceFragment im
         setPreferencesFromResource(R.xml.dcdimming_settings, rootKey);
         mDcDimmingPreference = findPreference(DC_DIMMING_KEY);
         if (mDcDimmingPreference != null) {
-            if (FileUtils.fileExists(DC_DISPLAY_NODE)) {
+            if (FileUtils.isFileWritable(DC_DISPLAY_NODE)) {
                 mDcDimmingPreference.setEnabled(true);
                 mDcDimmingPreference.setOnPreferenceChangeListener(this);
             } else {
@@ -84,7 +85,7 @@ public class DcDimmingSettingsFragment extends SettingsBasePreferenceFragment im
             boolean enabled = (boolean) newValue;
 
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getContext());
-            boolean hbmEnabled = prefs.getBoolean(HBM_KEY, false);
+            boolean hbmEnabled = HBMModeSwitch.isEnabled(getContext());
 
             if (enabled && hbmEnabled) {
                 Toast.makeText(
@@ -95,7 +96,7 @@ public class DcDimmingSettingsFragment extends SettingsBasePreferenceFragment im
                 return false;
             }
 
-            FileUtils.writeLine(DC_DISPLAY_NODE, enabled ? "1" : "0");
+            return FileUtils.writeLine(DC_DISPLAY_NODE, enabled ? "1" : "0");
         }
         return true;
     }

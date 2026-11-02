@@ -83,8 +83,8 @@ public class SeekBarPreference extends RestrictedPreference
     public void onBindViewHolder(PreferenceViewHolder view) {
         super.onBindViewHolder(view);
 
-        mIconView = (ImageView) view.findViewById(R.id.icon);
-        if (mIcon != null) {
+        mIconView = (ImageView) view.findViewById(android.R.id.icon);
+        if (mIcon != null && mIconView != null) {
             mIconView.setImageDrawable(mIcon);
         }
 

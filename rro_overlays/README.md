@@ -6,7 +6,7 @@ We add `.lineage` and increase priority only when we overlay LineageOS additions
 
 ## Name
 
-`[Lineage]<component name>Overlay(Common|Device)`
+`[Lineage]<component name>OverlayDevice`
 
 - `android`: `FrameworkRes`
 - `com.android.carrierconfig`: `CarrierConfig`
@@ -21,11 +21,9 @@ We add `.lineage` and increase priority only when we overlay LineageOS additions
 
 ## Package name
 
-`<target package>.overlay[.lineage].(common|device)`
+`<target package>.overlay[.lineage].device`
 
 ## Priority
 
-- AOSP common overlay: 100
-- Lineage common overlay: 150
 - AOSP device overlay: 200
 - Lineage device overlay: 250

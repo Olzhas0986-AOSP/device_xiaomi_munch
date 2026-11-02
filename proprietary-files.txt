@@ -1,5 +1,4 @@
 # Unpinned blobs from munch-user 13 RKQ1.211001.001 V816.0.9.0.ULMMIXM release-keys
-# lmi: lmi-user 11 RKQ1.200826.002 V12.5.3.0.RJKMIXM release-keys
 # marvel: marvel-user 17 marvel_g A171WEH.20 release-keys
 # munch_cn: munch-user 13 RKQ1.211001.001 V816.0.10.0.ULMCNXM release-keys
 
@@ -397,20 +396,6 @@ vendor/etc/camera/vidhance_calibration
 # Camera firmware
 vendor/firmware/CAMERA_ICP.elf
 
-# Camera motor (sound) - from lmi
-system/media/audio/ui/popup_cangmen_down.ogg:system_ext/media/audio/ui/popup_cangmen_down.ogg|573b107889ccf639db5455af21129ce1fee93bc5
-system/media/audio/ui/popup_cangmen_up.ogg:system_ext/media/audio/ui/popup_cangmen_up.ogg|f152dea254b4eaae403b791c49c60c05ccf12ea7
-system/media/audio/ui/popup_chilun_down.ogg:system_ext/media/audio/ui/popup_chilun_down.ogg|e200a3de45abbf2057ca0c6a735b6a6a78ec1b1c
-system/media/audio/ui/popup_chilun_up.ogg:system_ext/media/audio/ui/popup_chilun_up.ogg|908bd714b58648c8861c0e56ca7c6f0db84d4e2b
-system/media/audio/ui/popup_jijia_down.ogg:system_ext/media/audio/ui/popup_jijia_down.ogg|680b41897aaa47972630012e0c68396bf4cbe9c7
-system/media/audio/ui/popup_jijia_up.ogg:system_ext/media/audio/ui/popup_jijia_up.ogg|bd71c2f07f439a2afc9e9b435ef8d1a7a28a4fc1
-system/media/audio/ui/popup_mofa_down.ogg:system_ext/media/audio/ui/popup_mofa_down.ogg|ebfec5126f64a5eea69aad43af169de5eed398ae
-system/media/audio/ui/popup_mofa_up.ogg:system_ext/media/audio/ui/popup_mofa_up.ogg|95ef57769ca5e4a3264e4adf7c9958d55ff1a32c
-system/media/audio/ui/popup_muqin_down.ogg:system_ext/media/audio/ui/popup_muqin_down.ogg|3ecf82ae3d4ec853e0832901d2163c252ad62e07
-system/media/audio/ui/popup_muqin_up.ogg:system_ext/media/audio/ui/popup_muqin_up.ogg|047ae904c2932bc6112cd7ef4458f4cad1972181
-system/media/audio/ui/popup_yingyan_down.ogg:system_ext/media/audio/ui/popup_yingyan_down.ogg|de1623b20f311322dc79a3d152ca30318e1ed0db
-system/media/audio/ui/popup_yingyan_up.ogg:system_ext/media/audio/ui/popup_yingyan_up.ogg|0c3a716ba49dd682a6d58cca04eece0f81ca6834
-
 # CDSP
 vendor/bin/cdsprpcd
 vendor/etc/init/vendor.qti.cdsprpc-service.rc
@@ -715,11 +700,32 @@ vendor/lib64/vendor.qti.gnss@2.1.so
 vendor/lib64/vendor.qti.gnss@3.0.so
 vendor/lib64/vendor.qti.gnss@4.0.so
 vendor/lib64/vendor.qti.hardware.cacert@1.0.so
+vendor/bin/hw/android.hardware.gnss@2.1-service-qti
+vendor/bin/slim_daemon
+vendor/etc/init/android.hardware.gnss@2.1-service-qti.rc
+vendor/etc/vintf/manifest/android.hardware.gnss@2.1-service-qti.xml
+vendor/etc/vintf/manifest/vendor.qti.gnss@4.0-service.xml
+vendor/lib64/hw/android.hardware.gnss@2.1-impl-qti.so
+vendor/lib64/hw/vendor.qti.gnss@4.0-impl.so
+vendor/lib64/libbatching.so
+vendor/lib64/libgeofencing.so
+vendor/lib64/libgnss.so
+vendor/lib64/libgnsspps.so
+vendor/lib64/libloc_api_wds.so
+vendor/lib64/libloc_socket.so
+vendor/lib64/liblocationservice.so
+vendor/lib64/liblocationservice_glue.so
+vendor/lib64/libslimclient.so
+vendor/lib64/vendor.qti.gnss@4.0-service.so
 
 # GNSS configs
 vendor/etc/izat.conf
 vendor/etc/lowi.conf
 vendor/etc/xtwifi.conf
+vendor/etc/apdr.conf
+vendor/etc/flp.conf
+vendor/etc/gps.conf
+vendor/etc/sap.conf
 
 # HotwordEnrollment
 product/priv-app/HotwordEnrollmentOKGoogleHEXAGON_WIDEBAND/HotwordEnrollmentOKGoogleHEXAGON_WIDEBAND.apk
@@ -854,6 +860,13 @@ vendor/etc/media_profiles_kona.xml:vendor/etc/media_profiles_V1_0.xml
 # Mink-Lowi Interface daemon
 vendor/bin/mlid
 vendor/lib64/libminksocket.so
+
+# Mlipay
+vendor/bin/mlipayd@1.1
+vendor/etc/init/vendor.xiaomi.hardware.mlipay@1.1-service.rc
+vendor/etc/vintf/manifest/manifest_vendor.xiaomi.hardware.mlipay.xml
+vendor/lib64/libmlipay.so
+vendor/lib64/libmlipay@1.1.so
 
 # Neural networks
 vendor/bin/hw/android.hardware.neuralnetworks@1.3-service-qti
@@ -1125,6 +1138,9 @@ vendor/bin/hw/vendor.qti.hardware.soter@1.0-service
 vendor/etc/init/vendor.qti.hardware.soter@1.0-service.rc
 vendor/lib64/hw/vendor.qti.hardware.soter@1.0-impl.so
 vendor/lib64/vendor.qti.hardware.soter@1.0.so
+
+# Soter service (Tencent)
+vendor/app/SoterService/SoterService.apk
 
 # Subsystem Restart
 vendor/bin/ssr_setup

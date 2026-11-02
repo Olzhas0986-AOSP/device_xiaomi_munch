@@ -9,8 +9,6 @@
 #include "include/libinit_dalvik_heap.h"
 #include "include/libinit_variant.h"
 
-#include <libvariant.h>
-
 static const variant_info munch_in_info = {
     .hwc_value = "INDIA",
     .sku_value = "",

@@ -171,7 +171,7 @@ public class RefreshSettingsFragment extends SettingsBasePreferenceFragment
 
         for (int i = 0; i < entries.size(); i++) {
             final ApplicationInfo info = entries.get(i).info;
-            final String label = (String) info.loadLabel(pm);
+            final String label = info.loadLabel(pm).toString();
             final String sectionIndex;
 
             if (!info.enabled) {

@@ -318,7 +318,6 @@ public class ThermalSettingsFragment extends SettingsBasePreferenceFragment
                     .inflate(R.layout.thermal_list_item, parent, false));
             Context context = holder.itemView.getContext();
             holder.mode.setAdapter(new ModeAdapter(context));
-            holder.mode.setOnItemSelectedListener(this);
             return holder;
         }
 
@@ -345,13 +344,15 @@ public class ThermalSettingsFragment extends SettingsBasePreferenceFragment
                 }
             });
 
+            holder.mode.setOnItemSelectedListener(null);
+            holder.mode.setTag(entry);
             holder.title.setText(entry.label);
             holder.title.setOnClickListener(v -> holder.mode.performClick());
             mApplicationsState.ensureIcon(entry);
             holder.icon.setImageDrawable(entry.icon);
             int packageState = mThermalUtils.getStateForPackage(entry.info.packageName);
             holder.mode.setSelection(packageState, false);
-            holder.mode.setTag(entry);
+            holder.mode.setOnItemSelectedListener(this);
             int stateIconDawable = getStateDrawable(mThermalUtils.getStateForPackage(
                     entry.info.packageName));
             if (stateIconDawable == R.drawable.ic_thermal_gaming ||
@@ -378,6 +379,7 @@ public class ThermalSettingsFragment extends SettingsBasePreferenceFragment
         @Override
         public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
             final ApplicationsState.AppEntry entry = (ApplicationsState.AppEntry) parent.getTag();
+            if (entry == null) return;
             int currentState = mThermalUtils.getStateForPackage(entry.info.packageName);
             if (currentState != position) {
                 mThermalUtils.writePackage(entry.info.packageName, position);

@@ -16,4 +16,27 @@ public final class ProfileUtils {
         }
         return String.join(":", normalized);
     }
+
+    public static boolean contains(String profile, String packageName) {
+        if (packageName == null || packageName.isEmpty()) return false;
+        for (String entry : profile.substring(profile.indexOf('=') + 1).split(",")) {
+            if (packageName.equals(entry)) return true;
+        }
+        return false;
+    }
+
+    public static String removePackage(String value, String packageName) {
+        String[] profiles = value.split(":", -1);
+        for (int i = 0; i < profiles.length; i++) {
+            int separator = profiles[i].indexOf('=') + 1;
+            StringBuilder profile = new StringBuilder(profiles[i].substring(0, separator));
+            for (String entry : profiles[i].substring(separator).split(",")) {
+                if (!entry.isEmpty() && !entry.equals(packageName)) {
+                    profile.append(entry).append(',');
+                }
+            }
+            profiles[i] = profile.toString();
+        }
+        return String.join(":", profiles);
+    }
 }

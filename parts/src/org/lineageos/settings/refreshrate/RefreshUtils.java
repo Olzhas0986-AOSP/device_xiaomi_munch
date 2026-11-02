@@ -164,7 +164,7 @@ public final class RefreshUtils {
 
     protected void writePackage(String packageName, int mode) {
         String value = getValue();
-        value = value.replace(packageName + ",", "");
+        value = ProfileUtils.removePackage(value, packageName);
         String[] modes = value.split(":");
         String finalString;
 
@@ -190,11 +190,11 @@ public final class RefreshUtils {
         String value = getValue();
         String[] modes = value.split(":");
         int state = STATE_DEFAULT;
-        if (modes[0].contains(packageName + ",")) {
+        if (ProfileUtils.contains(modes[0], packageName)) {
             state = STATE_STANDARD;
-        } else if (modes[1].contains(packageName + ",")) {
+        } else if (ProfileUtils.contains(modes[1], packageName)) {
             state = STATE_EXTREME;
-        } else if (modes[2].contains(packageName + ",")) {
+        } else if (ProfileUtils.contains(modes[2], packageName)) {
             state = STATE_LAND;
         }
         return state;
@@ -210,13 +210,13 @@ public final class RefreshUtils {
         if (value != null) {
             modes = value.split(":");
 
-            if (modes[0].contains(packageName + ",")) {
+            if (ProfileUtils.contains(modes[0], packageName)) {
                 maxRate = REFRESH_STATE_STANDARD;
                 isAppInList = true;
-            } else if (modes[1].contains(packageName + ",")) {
+            } else if (ProfileUtils.contains(modes[1], packageName)) {
                 maxRate = REFRESH_STATE_EXTREME;
                 isAppInList = true;
-            } else if (modes[2].contains(packageName + ",")) {
+            } else if (ProfileUtils.contains(modes[2], packageName)) {
                 initializeOrientationListener(packageName);
                 isAppInList = true;
                 return;

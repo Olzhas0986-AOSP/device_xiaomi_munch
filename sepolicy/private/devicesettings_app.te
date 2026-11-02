@@ -21,3 +21,7 @@ allow devicesettings_app sysfs_thermal:file w_file_perms;
 
 # Allow XiaomiParts to get settingsdebug.instant.packages prop
 get_prop(devicesettings_app, settingslib_prop)
+
+# Allow XiaomiParts to snapshot and restore the panel backlight for HBM
+r_dir_file(devicesettings_app, sysfs_leds)
+allow devicesettings_app sysfs_leds:file w_file_perms;

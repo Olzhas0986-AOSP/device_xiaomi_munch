@@ -6,19 +6,6 @@ import org.lineageos.settings.refreshrate.RefreshUtils;
 import java.util.*;
 
 public class RefreshUtilsTest {
-    static class Prefs implements SharedPreferences {
-        Map<String,Object> values = new HashMap<>();
-        public String getString(String k, String d) { return (String) values.getOrDefault(k, d); }
-        public boolean getBoolean(String k, boolean d) { return (Boolean) values.getOrDefault(k, d); }
-        public Editor edit() { return new Editor() {
-            Map<String,Object> pending = new HashMap<>();
-            public Editor putString(String k,String v) { pending.put(k,v); return this; }
-            public Editor putBoolean(String k,boolean v) { pending.put(k,v); return this; }
-            public Editor remove(String k) { pending.put(k,null); return this; }
-            public boolean commit() { apply(); return true; }
-            public void apply() { pending.forEach((k,v) -> { if(v==null) values.remove(k); else values.put(k,v); }); }
-        }; }
-    }
     static void rates(String min, String max) {
         if (!Objects.equals(min, Settings.System.values.get("min_refresh_rate"))
                 || !Objects.equals(max, Settings.System.values.get("peak_refresh_rate"))) {
@@ -26,7 +13,7 @@ public class RefreshUtilsTest {
         }
     }
     public static void main(String[] args) {
-        Context context = new Context(); context.prefs = new Prefs();
+        Context context = new Context(); context.prefs = new InMemoryPreferences();
         context.prefs.edit().putString("refresh_control",
                 "refresh.standard=com.low,:refresh.extreme=com.high,:refresh.land=com.land,").commit();
         Settings.System.values.put("min_refresh_rate", "90");

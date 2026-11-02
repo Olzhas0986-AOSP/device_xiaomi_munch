@@ -57,8 +57,11 @@ public class HBMModeSwitch implements OnPreferenceChangeListener {
     }
 
     public static boolean executeHBMAction(Context context, SharedPreferences prefs, boolean enabled) {
-        String hbmNode = getHBM();
-        String backlightNode = getBACKLIGHT();
+        return executeHBMAction(context, prefs, enabled, getHBM(), getBACKLIGHT());
+    }
+
+    static boolean executeHBMAction(Context context, SharedPreferences prefs, boolean enabled,
+            String hbmNode, String backlightNode) {
         if (hbmNode == null) return false;
 
         if (enabled) {

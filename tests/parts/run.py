@@ -9,6 +9,9 @@ import tempfile
 
 root = Path(__file__).resolve().parents[2]
 sources = [root / "parts/src/org/lineageos/settings/utils/ProfileUtils.java"]
+sources += [root / ("parts/src/org/lineageos/settings/" + name) for name in (
+    "utils/FileUtils.java", "hbm/HBMModeSwitch.java", "thermal/ThermalUtils.java",
+    "thermal/Constants.java")]
 sources += sorted((root / "tests/parts/stubs").rglob("*.java"))
 sources += [root / "parts/src/org/lineageos/settings/refreshrate/RefreshUtils.java"]
 sources += sorted(Path(__file__).parent.glob("*Test.java"))
@@ -23,3 +26,10 @@ with tempfile.TemporaryDirectory(prefix="parts-tests-") as output:
         package = re.search(r"^package ([\w.]+);", test.read_text(), re.M)
         name = (package.group(1) + "." if package else "") + test.stem
         subprocess.run(["java", "-cp", output, name], check=True)
+    if os.environ.get("ECJ_JAR"):
+        jar = os.environ["ECJ_JAR"]
+        subprocess.run(compiler + ["-cp", jar,
+                       str(root / "tests/parts/CheckPartsSyntax.java")], check=True)
+        subprocess.run(["java", "-cp", output + os.pathsep + jar, "CheckPartsSyntax"]
+                       + [str(p) for p in sorted((root / "parts/src").rglob("*.java"))],
+                       check=True)

@@ -82,17 +82,18 @@ public class CustomSeekBarPreference extends Preference implements SeekBar.OnSee
         }
 
         try {
-            String newInterval = attrs.getAttributeValue(SETTINGS_NS, "interval");
+            String newInterval = attrs == null ? null : attrs.getAttributeValue(SETTINGS_NS, "interval");
             if (newInterval != null)
                 mInterval = Integer.parseInt(newInterval);
         } catch (Exception e) {
             Log.e(TAG, "Invalid interval value", e);
         }
-        mMinValue = attrs.getAttributeIntValue(SETTINGS_NS, "min", mMinValue);
-        mMaxValue = attrs.getAttributeIntValue(ANDROIDNS, "max", mMaxValue);
+        mInterval = Math.max(1, mInterval);
+        mMinValue = attrs == null ? mMinValue : attrs.getAttributeIntValue(SETTINGS_NS, "min", mMinValue);
+        mMaxValue = attrs == null ? mMaxValue : attrs.getAttributeIntValue(ANDROIDNS, "max", mMaxValue);
         if (mMaxValue < mMinValue)
             mMaxValue = mMinValue;
-        String defaultValue = attrs.getAttributeValue(ANDROIDNS, "defaultValue");
+        String defaultValue = attrs == null ? null : attrs.getAttributeValue(ANDROIDNS, "defaultValue");
         mDefaultValueExists = defaultValue != null && !defaultValue.isEmpty();
         if (mDefaultValueExists) {
             mDefaultValue = getLimitedValue(Integer.parseInt(defaultValue));

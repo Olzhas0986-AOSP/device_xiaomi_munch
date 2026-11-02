@@ -17,6 +17,7 @@ import android.os.Looper;
 import android.os.PowerManager;
 import androidx.preference.PreferenceManager;
 import org.lineageos.settings.utils.ProfileUtils;
+import org.lineageos.settings.utils.FileUtils;
 
 public class AutoHBMService extends Service {
     private final Handler mHandler = new Handler(Looper.getMainLooper());
@@ -96,7 +97,8 @@ public class AutoHBMService extends Service {
                     HBMFragment.HBM_DISABLE_TIME_KEY, "1"), 1, 1, 10);
             if (event.values[0] > threshold) {
                 cancelTimeout();
-                if (!mAutoHBMActive) {
+                if (!mAutoHBMActive || !FileUtils.getFileValueAsBoolean(
+                        "/sys/devices/platform/soc/soc:qcom,dsi-display-primary/hbm", false)) {
                     mAutoHBMActive = HBMModeSwitch.executeHBMAction(AutoHBMService.this,
                             mPrefs, true);
                 }
@@ -142,6 +144,16 @@ public class AutoHBMService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        if (manualEnabled()) {
+            boolean enabled = mScreenOn || !mPrefs.getBoolean(
+                    HBMFragment.HBM_TURN_OFF_ON_SCREEN_OFF_KEY, false);
+            if (HBMModeSwitch.executeHBMAction(this, mPrefs, enabled) && !enabled) {
+                mPrefs.edit().putBoolean(HBMFragment.HBM_SWITCH_KEY, false).apply();
+            }
+        } else if (mPrefs.contains("last_brightness")) {
+            // The process may have died while automatic HBM owned the display.
+            mAutoHBMActive = true;
+        }
         updateState();
         return START_STICKY;
     }

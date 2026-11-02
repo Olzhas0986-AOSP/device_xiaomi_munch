@@ -31,8 +31,7 @@ import org.lineageos.settings.utils.ProfileUtils;
 import org.lineageos.settings.widget.SeekBarPreference;
 
 public class TouchSettingsFragment extends SettingsBasePreferenceFragment
-        implements SharedPreferences.OnSharedPreferenceChangeListener,
-        Preference.OnPreferenceChangeListener {
+        implements Preference.OnPreferenceChangeListener {
 
     private SharedPreferences mSharedPrefs;
     private SeekBarPreference mTouchSensitivity;
@@ -57,26 +56,18 @@ public class TouchSettingsFragment extends SettingsBasePreferenceFragment
         getActivity().setTitle(getResources().getString(R.string.touch_control_title));
 
         mGameMode = (MainSwitchPreference) findPreference(Constants.PREF_TOUCH_GAME_MODE);
-        if (mGameMode != null) {
-            mGameMode.setOnPreferenceChangeListener(this);
-        }
-
         mTouchResistant = (SeekBarPreference) findPreference(Constants.PREF_TOUCH_RESISTANT);
         mTouchResponse = (SeekBarPreference) findPreference(Constants.PREF_TOUCH_RESPONSE);
         mTouchSensitivity = (SeekBarPreference) findPreference(Constants.PREF_TOUCH_SENSITIVITY);
+        for (Preference preference : new Preference[] {
+                mGameMode, mTouchResponse, mTouchSensitivity, mTouchResistant}) {
+            preference.setPersistent(false);
+        }
         updateDefaults();
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        mSharedPrefs.registerOnSharedPreferenceChangeListener(this);
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        mSharedPrefs.unregisterOnSharedPreferenceChangeListener(this);
+        for (Preference preference : new Preference[] {
+                mGameMode, mTouchResponse, mTouchSensitivity, mTouchResistant}) {
+            preference.setOnPreferenceChangeListener(this);
+        }
     }
 
     @Override
@@ -89,26 +80,20 @@ public class TouchSettingsFragment extends SettingsBasePreferenceFragment
     }
 
     @Override
-    public void onSharedPreferenceChanged(SharedPreferences sharedPrefs, String key) {
-        if (Constants.PREF_TOUCH_GAME_MODE.equals(key)) {
-            updateTouchModes(sharedPrefs.getBoolean(key, false) ? 1 : 0,
-                    Constants.TOUCH_GAME_MODE);
-        } else if (Constants.PREF_TOUCH_RESPONSE.equals(key)) {
-            updateTouchModes(sharedPrefs.getInt(key, 0), Constants.TOUCH_RESPONSE);
-        } else if (Constants.PREF_TOUCH_SENSITIVITY.equals(key)) {
-            updateTouchModes(sharedPrefs.getInt(key, 0), Constants.TOUCH_SENSITIVITY);
-        } else if (Constants.PREF_TOUCH_RESISTANT.equals(key)) {
-            updateTouchModes(sharedPrefs.getInt(key, 0), Constants.TOUCH_RESISTANT);
-        }
-    }
-
-    @Override
     public boolean onPreferenceChange(Preference preference, Object newValue) {
-        if (Constants.PREF_TOUCH_GAME_MODE.equals(preference.getKey())) {
-            boolean isChecked = (Boolean) newValue;
-            mTouchSensitivity.setEnabled(isChecked);
-            mTouchResponse.setEnabled(isChecked);
-            mTouchResistant.setEnabled(isChecked);
+        String key = preference.getKey();
+        if (Constants.PREF_TOUCH_GAME_MODE.equals(key)) {
+            boolean enabled = (Boolean) newValue;
+            mTouchSensitivity.setEnabled(enabled);
+            mTouchResponse.setEnabled(enabled);
+            mTouchResistant.setEnabled(enabled);
+            updateTouchModes(enabled ? 1 : 0, Constants.TOUCH_GAME_MODE);
+        } else if (Constants.PREF_TOUCH_RESPONSE.equals(key)) {
+            updateTouchModes((Integer) newValue, Constants.TOUCH_RESPONSE);
+        } else if (Constants.PREF_TOUCH_SENSITIVITY.equals(key)) {
+            updateTouchModes((Integer) newValue, Constants.TOUCH_SENSITIVITY);
+        } else if (Constants.PREF_TOUCH_RESISTANT.equals(key)) {
+            updateTouchModes((Integer) newValue, Constants.TOUCH_RESISTANT);
         }
         return true;
     }
@@ -128,7 +113,9 @@ public class TouchSettingsFragment extends SettingsBasePreferenceFragment
     }
 
     private void writeTouchValues(String modes) {
-        mSharedPrefs.edit().putString(packageName, modes).apply();
+        if (!packageName.isEmpty()) {
+            mSharedPrefs.edit().putString(packageName, modes).apply();
+        }
     }
 
     public String getTouchValues() {
@@ -136,7 +123,6 @@ public class TouchSettingsFragment extends SettingsBasePreferenceFragment
         if (values == null || values.isEmpty()) {
             values = "0,0,0,0";
         }
-        writeTouchValues(values);
         return values;
     }
 

@@ -9,62 +9,114 @@
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY Refresh, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
 
 package org.lineageos.settings.refreshrate;
 
-import android.app.ActivityManager;
 import android.app.ActivityTaskManager;
 import android.app.ActivityTaskManager.RootTaskInfo;
 import android.app.IActivityTaskManager;
-import android.app.TaskStackListener;
 import android.app.Service;
+import android.app.TaskStackListener;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.res.Configuration;
 import android.os.Handler;
 import android.os.IBinder;
-import android.util.Log;
+import android.os.Looper;
+import android.os.PowerManager;
 import android.os.RemoteException;
+import android.util.Log;
 
 public class RefreshService extends Service {
-
     private static final String TAG = "RefreshService";
-    private static final boolean DEBUG = true;
-
-    private String mPreviousApp;
+    private final Handler mHandler = new Handler(Looper.getMainLooper());
+    private final Runnable mUpdateProfile = this::updateProfile;
     private RefreshUtils mRefreshUtils;
     private IActivityTaskManager mActivityTaskManager;
+    private boolean mScreenOn;
+    private boolean mDestroyed;
 
-    private BroadcastReceiver mIntentReceiver = new BroadcastReceiver() {
+    private final BroadcastReceiver mScreenReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            mPreviousApp = "";
+            mScreenOn = Intent.ACTION_SCREEN_ON.equals(intent.getAction());
+            scheduleUpdate();
+        }
+    };
+
+    private final TaskStackListener mTaskListener = new TaskStackListener() {
+        @Override
+        public void onTaskStackChanged() {
+            scheduleUpdate();
         }
     };
 
     @Override
     public void onCreate() {
-        if (DEBUG) Log.d(TAG, "Creating service");
+        super.onCreate();
+        mRefreshUtils = new RefreshUtils(this);
+        mScreenOn = getSystemService(PowerManager.class).isInteractive();
+        mActivityTaskManager = ActivityTaskManager.getService();
         try {
-            mActivityTaskManager = ActivityTaskManager.getService();
             mActivityTaskManager.registerTaskStackListener(mTaskListener);
         } catch (RemoteException e) {
-            // Do nothing
+            Log.w(TAG, "Unable to register task listener", e);
         }
-        mRefreshUtils = new RefreshUtils(this);
-        registerReceiver();
-        super.onCreate();
+        IntentFilter filter = new IntentFilter(Intent.ACTION_SCREEN_ON);
+        filter.addAction(Intent.ACTION_SCREEN_OFF);
+        registerReceiver(mScreenReceiver, filter);
+        scheduleUpdate();
+    }
+
+    private void scheduleUpdate() {
+        mHandler.removeCallbacks(mUpdateProfile);
+        mHandler.post(mUpdateProfile);
+    }
+
+    private void updateProfile() {
+        if (mDestroyed) return;
+        if (!mScreenOn) {
+            mRefreshUtils.restoreRefreshRate();
+            return;
+        }
+        try {
+            RootTaskInfo info = mActivityTaskManager.getFocusedRootTaskInfo();
+            String packageName = info == null || info.topActivity == null
+                    ? "" : info.topActivity.getPackageName();
+            mRefreshUtils.setRefreshRate(packageName);
+        } catch (RemoteException e) {
+            Log.w(TAG, "Unable to read the foreground task", e);
+        }
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration config) {
+        super.onConfigurationChanged(config);
+        scheduleUpdate();
+    }
+
+    @Override
+    public void onDestroy() {
+        mDestroyed = true;
+        try {
+            mActivityTaskManager.unregisterTaskStackListener(mTaskListener);
+        } catch (RemoteException e) {
+            Log.w(TAG, "Unable to unregister task listener", e);
+        }
+        unregisterReceiver(mScreenReceiver);
+        mHandler.removeCallbacksAndMessages(null);
+        mRefreshUtils.restoreRefreshRate();
+        super.onDestroy();
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (DEBUG) Log.d(TAG, "Starting service");
         return START_STICKY;
     }
 
@@ -72,39 +124,4 @@ public class RefreshService extends Service {
     public IBinder onBind(Intent intent) {
         return null;
     }
-
-    private void registerReceiver() {
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(Intent.ACTION_SCREEN_OFF);
-        filter.addAction(Intent.ACTION_SCREEN_ON);        
-        this.registerReceiver(mIntentReceiver, filter);
-    }
-
-    private final TaskStackListener mTaskListener = new TaskStackListener() {
-        @Override
-        public void onTaskStackChanged() {
-            try {
-                final RootTaskInfo info = mActivityTaskManager.getFocusedRootTaskInfo();
-                if (info == null || info.topActivity == null) {
-                    return;
-                }
-                String foregroundApp = info.topActivity.getPackageName();
-                int state = mRefreshUtils.getStateForPackage(foregroundApp);
-                
-                if (!mRefreshUtils.isAppInList) {
-                    mRefreshUtils.getOldRate();
-                }
-
-                if (!foregroundApp.equals(mPreviousApp)) {
-                    mRefreshUtils.setRefreshRate(foregroundApp);
-                    mPreviousApp = foregroundApp;
-                }
-                if (state == RefreshUtils.STATE_LAND && mRefreshUtils.isAppInList) {
-                    mRefreshUtils.checkOrientationAndSetRate(foregroundApp);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-    };
 }

@@ -44,7 +44,10 @@ public class HBMModeSwitch implements OnPreferenceChangeListener {
             return false;
         }
 
-        return executeHBMAction(mContext, prefs, enabled);
+        if (!executeHBMAction(mContext, prefs, enabled)) return false;
+        prefs.edit().putBoolean(HBMFragment.HBM_SWITCH_KEY, enabled).apply();
+        FileUtils.enableService(mContext);
+        return true;
     }
 
     public static boolean executeHBMAction(Context context, SharedPreferences prefs, boolean enabled) {

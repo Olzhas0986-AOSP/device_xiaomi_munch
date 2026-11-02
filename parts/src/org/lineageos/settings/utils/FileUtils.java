@@ -185,22 +185,16 @@ public final class FileUtils {
         }
         return defValue;
     }
-    private static boolean mServiceEnabled = false;
-    private static void startService(Context context) {
-        context.startServiceAsUser(new Intent(context, AutoHBMService.class),
-                UserHandle.CURRENT);
-        mServiceEnabled = true;
-    }
-    private static void stopService(Context context) {
-        mServiceEnabled = false;
-        context.stopServiceAsUser(new Intent(context, AutoHBMService.class),
-                UserHandle.CURRENT);
-    }
     public static void enableService(Context context) {
-        if (HBMFragment.isAUTOHBMEnabled(context) && !mServiceEnabled) {
-            startService(context);
-        } else if (!HBMFragment.isAUTOHBMEnabled(context) && mServiceEnabled) {
-            stopService(context);
+        android.content.SharedPreferences prefs =
+                androidx.preference.PreferenceManager.getDefaultSharedPreferences(context);
+        Intent intent = new Intent(context, AutoHBMService.class);
+        if (HBMFragment.isAUTOHBMEnabled(context)
+                || prefs.getBoolean(HBMFragment.HBM_SWITCH_KEY, false)
+                || prefs.contains("last_brightness")) {
+            context.startServiceAsUser(intent, UserHandle.CURRENT);
+        } else {
+            context.stopServiceAsUser(intent, UserHandle.CURRENT);
         }
     }
 }

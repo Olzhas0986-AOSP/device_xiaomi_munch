@@ -23,28 +23,6 @@ public class HBMModeTileService extends TileService {
                 }
             };
 
-    private final BroadcastReceiver mScreenOffReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if (Intent.ACTION_SCREEN_OFF.equals(intent.getAction())) {
-                SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-                boolean turnOffOnScreenOff = prefs.getBoolean(
-                        HBMFragment.HBM_TURN_OFF_ON_SCREEN_OFF_KEY, false);
-                boolean hbmEnabled = prefs.getBoolean(HBM_KEY, false);
-
-                if (turnOffOnScreenOff && hbmEnabled) {
-                    HBMModeSwitch.executeHBMAction(context, prefs, false);
-
-                    prefs.edit()
-                            .putBoolean(HBM_KEY, false)
-                            .remove("last_brightness")
-                            .remove("last_brightness_mode")
-                            .apply();
-                }
-            }
-        }
-    };
-
     private void updateUI(boolean enabled) {
         final Tile tile = getQsTile();
         if (tile != null) {
@@ -56,7 +34,6 @@ public class HBMModeTileService extends TileService {
     @Override
     public void onCreate() {
         super.onCreate();
-        registerReceiver(mScreenOffReceiver, new IntentFilter(Intent.ACTION_SCREEN_OFF));
         PreferenceManager.getDefaultSharedPreferences(this)
                 .registerOnSharedPreferenceChangeListener(mPrefsListener);
     }
@@ -64,7 +41,6 @@ public class HBMModeTileService extends TileService {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        unregisterReceiver(mScreenOffReceiver);
         PreferenceManager.getDefaultSharedPreferences(this)
                 .unregisterOnSharedPreferenceChangeListener(mPrefsListener);
     }
@@ -88,7 +64,8 @@ public class HBMModeTileService extends TileService {
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
         boolean dcDimmingEnabled = sharedPrefs.getBoolean(DC_DIMMING_KEY, false);
 
-        if (dcDimmingEnabled) {
+        final boolean enabled = !sharedPrefs.getBoolean(HBM_KEY, false);
+        if (enabled && dcDimmingEnabled) {
             Toast.makeText(
                     this,
                     R.string.hbm_disable_dc_dimming_first,
@@ -97,10 +74,9 @@ public class HBMModeTileService extends TileService {
             return;
         }
 
-        final boolean enabled = !sharedPrefs.getBoolean(HBM_KEY, false);
-
         if (HBMModeSwitch.executeHBMAction(this, sharedPrefs, enabled)) {
             sharedPrefs.edit().putBoolean(HBM_KEY, enabled).apply();
+            org.lineageos.settings.utils.FileUtils.enableService(this);
         }
     }
 }

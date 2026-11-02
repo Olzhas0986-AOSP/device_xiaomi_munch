@@ -34,34 +34,44 @@ public class PocketService extends Service {
     private SensorManager mSensorManager;
     private Sensor mTouchSensor;
 
-    private boolean mUserPresent;
+    private boolean mReceiverRegistered;
 
     @Override
     public void onCreate() {
+        super.onCreate();
         dlog("Creating service");
         mPowerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
         mKeyguardManager = (KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE);
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        mTouchSensor = mSensorManager.getDefaultSensor(TYPE_LARGE_AREA_TOUCH_SENSOR);
+        mTouchSensor = mSensorManager == null ? null
+                : mSensorManager.getDefaultSensor(TYPE_LARGE_AREA_TOUCH_SENSOR);
 
         IntentFilter screenStateFilter = new IntentFilter();
         screenStateFilter.addAction(Intent.ACTION_SCREEN_ON);
         screenStateFilter.addAction(Intent.ACTION_SCREEN_OFF);
         screenStateFilter.addAction(Intent.ACTION_USER_PRESENT);
-        registerReceiver(mScreenStateReceiver, screenStateFilter);
+        if (mTouchSensor != null) {
+            registerReceiver(mScreenStateReceiver, screenStateFilter);
+            mReceiverRegistered = true;
+            updateListening();
+        }
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         dlog("Starting service");
+        if (mTouchSensor == null) {
+            stopSelf();
+            return START_NOT_STICKY;
+        }
         return START_STICKY;
     }
 
     @Override
     public void onDestroy() {
         dlog("Destroying service");
-        unregisterReceiver(mScreenStateReceiver);
-        mSensorManager.unregisterListener(mSensorListener, mTouchSensor);
+        if (mReceiverRegistered) unregisterReceiver(mScreenStateReceiver);
+        if (mSensorManager != null) mSensorManager.unregisterListener(mSensorListener);
         super.onDestroy();
     }
 
@@ -74,27 +84,24 @@ public class PocketService extends Service {
          context.startServiceAsUser(new Intent(context, PocketService.class), UserHandle.CURRENT);
     }
 
-    private BroadcastReceiver mScreenStateReceiver = new BroadcastReceiver() {
+    private void updateListening() {
+        if (mTouchSensor == null) return;
+        if (mPowerManager.isInteractive() && mKeyguardManager.isKeyguardLocked()) {
+            mSensorManager.registerListener(mSensorListener, mTouchSensor,
+                    SensorManager.SENSOR_DELAY_NORMAL);
+        } else {
+            mSensorManager.unregisterListener(mSensorListener);
+        }
+    }
+
+    private final BroadcastReceiver mScreenStateReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            switch (intent.getAction()) {
-                case Intent.ACTION_SCREEN_ON:
-                    dlog("Received ACTION_SCREEN_ON mUserPresent=" + mUserPresent);
-                    if (mUserPresent) return;
-                    mSensorManager.registerListener(mSensorListener,
-                            mTouchSensor, SensorManager.SENSOR_DELAY_NORMAL);
-                    break;
-                case Intent.ACTION_SCREEN_OFF:
-                    dlog("Received ACTION_SCREEN_OFF");
-                    mSensorManager.unregisterListener(mSensorListener, mTouchSensor);
-                    mUserPresent = false;
-                    break;
-                case Intent.ACTION_USER_PRESENT:
-                    dlog("Received ACTION_USER_PRESENT");
-                    // disable when unlocked
-                    mSensorManager.unregisterListener(mSensorListener, mTouchSensor);
-                    mUserPresent = true;
-                    break;
+            if (Intent.ACTION_SCREEN_OFF.equals(intent.getAction())
+                    || Intent.ACTION_USER_PRESENT.equals(intent.getAction())) {
+                mSensorManager.unregisterListener(mSensorListener);
+            } else {
+                updateListening();
             }
         }
     };
@@ -107,6 +114,7 @@ public class PocketService extends Service {
 
         @Override
         public void onSensorChanged(SensorEvent event) {
+            if (event.values.length == 0 || !mPowerManager.isInteractive()) return;
             boolean isTouchDetected = event.values[0] == 1;
             boolean isOnKeyguard = mKeyguardManager.isKeyguardLocked();
 

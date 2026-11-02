@@ -27,6 +27,8 @@ import android.view.WindowManager;
 
 import androidx.preference.PreferenceManager;
 
+import org.lineageos.settings.utils.ProfileUtils;
+
 import org.lineageos.settings.utils.FileUtils;
 
 import java.util.NoSuchElementException;
@@ -95,18 +97,12 @@ public final class ThermalUtils {
 
     private String getValue() {
         String value = mSharedPrefs.getString(THERMAL_CONTROL, null);
-
-        if (value != null) {
-             String[] modes = value.split(":");
-             if (modes.length < 5) value = null;
-         }
-
-        if (value == null || value.isEmpty()) {
-            value = THERMAL_BENCHMARK + ":" + THERMAL_BROWSER + ":" + THERMAL_CAMERA + ":" +
-                    THERMAL_DIALER + ":" + THERMAL_GAMING + ":" + THERMAL_STREAMING;
-            writeValue(value);
+        String normalized = ProfileUtils.normalize(value,
+                THERMAL_BENCHMARK, THERMAL_BROWSER, THERMAL_CAMERA, THERMAL_DIALER, THERMAL_GAMING, THERMAL_STREAMING);
+        if (!normalized.equals(value)) {
+            writeValue(normalized);
         }
-        return value;
+        return normalized;
     }
 
     protected void writePackage(String packageName, int mode) {

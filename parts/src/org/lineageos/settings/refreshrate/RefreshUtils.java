@@ -28,6 +28,8 @@ import android.view.OrientationEventListener;
 import android.content.res.Configuration;
 import androidx.preference.PreferenceManager;
 
+import org.lineageos.settings.utils.ProfileUtils;
+
 public final class RefreshUtils {
 
     private static final String REFRESH_CONTROL = "refresh_control";
@@ -152,23 +154,12 @@ public final class RefreshUtils {
 
     private String getValue() {
         String value = mSharedPrefs.getString(REFRESH_CONTROL, null);
-
-        if (value == null || value.isEmpty()) {
-            value = REFRESH_STANDARD + ":" + REFRESH_EXTREME + ":" + REFRESH_LAND;
-            writeValue(value);
+        String normalized = ProfileUtils.normalize(value,
+                REFRESH_STANDARD, REFRESH_EXTREME, REFRESH_LAND);
+        if (!normalized.equals(value)) {
+            writeValue(normalized);
         }
-
-        String[] modes = value.split(":");
-        if (modes.length < 3) {
-            modes = new String[] {
-                modes.length > 0 ? modes[0] : REFRESH_STANDARD,
-                modes.length > 1 ? modes[1] : REFRESH_EXTREME,
-                modes.length > 2 ? modes[2] : REFRESH_LAND
-            };
-            value = String.join(":", modes);
-            writeValue(value);
-        }
-        return value;
+        return normalized;
     }
 
     protected void writePackage(String packageName, int mode) {

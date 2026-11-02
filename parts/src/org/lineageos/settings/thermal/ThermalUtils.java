@@ -210,7 +210,8 @@ public final class ThermalUtils {
         int touchResponse = value[Constants.TOUCH_RESPONSE];
         int touchSensitivity = value[Constants.TOUCH_SENSITIVITY];
         int touchResistant = value[Constants.TOUCH_RESISTANT];
-        int touchActiveMode = (touchResponse != 0 && touchSensitivity != 0 && touchResistant != 0)
+        int touchActiveMode = (gameMode == 1 && touchResponse != 0
+                && touchSensitivity != 0 && touchResistant != 0)
                 ? 1 : 0;
         try {
             mTouchFeature.setTouchMode(Constants.MODE_TOUCH_TOLERANCE, touchSensitivity);

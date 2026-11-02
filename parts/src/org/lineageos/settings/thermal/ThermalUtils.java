@@ -205,11 +205,11 @@ public final class ThermalUtils {
             return;
         }
 
-        String[] value = values.split(",");
-        int gameMode = Integer.parseInt(value[Constants.TOUCH_GAME_MODE]);
-        int touchResponse = Integer.parseInt(value[Constants.TOUCH_RESPONSE]);
-        int touchSensitivity = Integer.parseInt(value[Constants.TOUCH_SENSITIVITY]);
-        int touchResistant = Integer.parseInt(value[Constants.TOUCH_RESISTANT]);
+        int[] value = ProfileUtils.parseTouchProfile(values);
+        int gameMode = value[Constants.TOUCH_GAME_MODE];
+        int touchResponse = value[Constants.TOUCH_RESPONSE];
+        int touchSensitivity = value[Constants.TOUCH_SENSITIVITY];
+        int touchResistant = value[Constants.TOUCH_RESISTANT];
         int touchActiveMode = (touchResponse != 0 && touchSensitivity != 0 && touchResistant != 0)
                 ? 1 : 0;
         try {

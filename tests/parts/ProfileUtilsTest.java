@@ -21,6 +21,13 @@ public class ProfileUtilsTest {
         }
         equal("a=com.foo.game,:b=", ProfileUtils.removePackage(
                 "a=com.foo.game,foo.game,:b=foo.game,", "foo.game"));
+        if (!java.util.Arrays.equals(new int[] {1, 2, 0, 3},
+                ProfileUtils.parseTouchProfile("1,2,bad,99"))) {
+            throw new AssertionError("Malformed touch profile was not repaired");
+        }
+        if (!java.util.Arrays.equals(new int[4], ProfileUtils.parseTouchProfile(null))) {
+            throw new AssertionError("Missing touch profile was not defaulted");
+        }
         System.out.println("ProfileUtils tests passed");
     }
 }

@@ -39,4 +39,17 @@ public final class ProfileUtils {
         }
         return String.join(":", profiles);
     }
+    public static int[] parseTouchProfile(String value) {
+        String[] fields = value == null ? new String[0] : value.split(",", -1);
+        int[] result = new int[4];
+        for (int i = 0; i < result.length && i < fields.length; i++) {
+            try {
+                result[i] = Math.max(0, Math.min(i == 0 ? 1 : 3,
+                        Integer.parseInt(fields[i])));
+            } catch (NumberFormatException e) {
+                result[i] = 0;
+            }
+        }
+        return result;
+    }
 }

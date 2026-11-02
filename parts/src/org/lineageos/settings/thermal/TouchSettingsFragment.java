@@ -27,6 +27,7 @@ import com.android.settingslib.widget.MainSwitchPreference;
 import com.android.settingslib.widget.SettingsBasePreferenceFragment;
 
 import org.lineageos.settings.R;
+import org.lineageos.settings.utils.ProfileUtils;
 import org.lineageos.settings.widget.SeekBarPreference;
 
 public class TouchSettingsFragment extends SettingsBasePreferenceFragment
@@ -113,17 +114,17 @@ public class TouchSettingsFragment extends SettingsBasePreferenceFragment
     }
 
     private void updateDefaults() {
-        String[] values = getTouchValues().split(",");
-        boolean modeEnabled = Integer.parseInt(values[Constants.TOUCH_GAME_MODE]) == 1;
+        int[] values = ProfileUtils.parseTouchProfile(getTouchValues());
+        boolean modeEnabled = values[Constants.TOUCH_GAME_MODE] == 1;
         mGameMode.setChecked(modeEnabled);
 
         mTouchSensitivity.setEnabled(modeEnabled);
         mTouchResponse.setEnabled(modeEnabled);
         mTouchResistant.setEnabled(modeEnabled);
 
-        mTouchResponse.setProgress(Integer.parseInt(values[Constants.TOUCH_RESPONSE]));
-        mTouchSensitivity.setProgress(Integer.parseInt(values[Constants.TOUCH_SENSITIVITY]));
-        mTouchResistant.setProgress(Integer.parseInt(values[Constants.TOUCH_RESISTANT]));
+        mTouchResponse.setProgress(values[Constants.TOUCH_RESPONSE]);
+        mTouchSensitivity.setProgress(values[Constants.TOUCH_SENSITIVITY]);
+        mTouchResistant.setProgress(values[Constants.TOUCH_RESISTANT]);
     }
 
     private void writeTouchValues(String modes) {
@@ -140,9 +141,9 @@ public class TouchSettingsFragment extends SettingsBasePreferenceFragment
     }
 
     public void updateTouchModes(int value, int mode) {
-        String[] values = getTouchValues().split(",");
-        values[mode] = String.valueOf(value);
-        String finalValues = values[Constants.TOUCH_GAME_MODE] + "," + values[Constants.TOUCH_RESPONSE] + ","
+        int[] values = ProfileUtils.parseTouchProfile(getTouchValues());
+        values[mode] = value;
+        String finalValues = String.valueOf(values[Constants.TOUCH_GAME_MODE]) + "," + values[Constants.TOUCH_RESPONSE] + ","
                 + values[Constants.TOUCH_SENSITIVITY] + "," + values[Constants.TOUCH_RESISTANT];
         writeTouchValues(finalValues);
     }

@@ -74,7 +74,6 @@ public class RefreshSettingsFragment extends SettingsBasePreferenceFragment
 
         mApplicationsState = ApplicationsState.getInstance(getActivity().getApplication());
         mSession = mApplicationsState.newSession(this);
-        mSession.onResume();
         mActivityFilter = new ActivityFilter(getActivity().getPackageManager());
 
         mAllPackagesAdapter = new AllPackagesAdapter(getActivity());
@@ -101,15 +100,21 @@ public class RefreshSettingsFragment extends SettingsBasePreferenceFragment
     @Override
     public void onResume() {
         super.onResume();
+        mSession.onResume();
         getActivity().setTitle(getResources().getString(R.string.refresh_title));
         rebuild();
+    }
+
+    @Override
+    public void onPause() {
+        mSession.onPause();
+        super.onPause();
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
 
-        mSession.onPause();
         mSession.onDestroy();
     }
 
@@ -121,7 +126,7 @@ public class RefreshSettingsFragment extends SettingsBasePreferenceFragment
 
     @Override
     public void onRebuildComplete(ArrayList<ApplicationsState.AppEntry> entries) {
-        if (entries != null) {
+        if (entries != null && isAdded()) {
             handleAppEntries(entries);
             mAllPackagesAdapter.notifyDataSetChanged();
         }

@@ -44,64 +44,48 @@ public class HBMModeSwitch implements OnPreferenceChangeListener {
             return false;
         }
 
-        executeHBMAction(mContext, prefs, enabled);
-        return true;
+        return executeHBMAction(mContext, prefs, enabled);
     }
 
-    public static void executeHBMAction(Context context, SharedPreferences prefs, boolean enabled) {
+    public static boolean executeHBMAction(Context context, SharedPreferences prefs, boolean enabled) {
         String hbmNode = getHBM();
         String backlightNode = getBACKLIGHT();
+        if (hbmNode == null) return false;
 
         if (enabled) {
-            int currentBrightness = Settings.System.getInt(
-                    context.getContentResolver(),
-                    Settings.System.SCREEN_BRIGHTNESS,
-                    128
-            );
-            int currentBrightnessMode = Settings.System.getInt(
-                    context.getContentResolver(),
+            if (!prefs.contains("last_brightness")) {
+                int brightness = Settings.System.getInt(context.getContentResolver(),
+                        Settings.System.SCREEN_BRIGHTNESS, 128);
+                int mode = Settings.System.getInt(context.getContentResolver(),
+                        Settings.System.SCREEN_BRIGHTNESS_MODE,
+                        Settings.System.SCREEN_BRIGHTNESS_MODE_MANUAL);
+                String raw = backlightNode == null ? null : FileUtils.readOneLine(backlightNode);
+                if (!prefs.edit().putInt("last_brightness", brightness)
+                        .putInt("last_brightness_mode", mode)
+                        .putString("last_raw_brightness", raw).commit()) return false;
+            }
+            if (!FileUtils.writeLine(hbmNode, "1")) return false;
+            Settings.System.putInt(context.getContentResolver(),
                     Settings.System.SCREEN_BRIGHTNESS_MODE,
-                    Settings.System.SCREEN_BRIGHTNESS_MODE_MANUAL
-            );
-            
-            prefs.edit()
-                    .putInt("last_brightness", currentBrightness)
-                    .putInt("last_brightness_mode", currentBrightnessMode)
-                    .apply();
-
-            Settings.System.putInt(
-                    context.getContentResolver(),
-                    Settings.System.SCREEN_BRIGHTNESS_MODE,
-                    Settings.System.SCREEN_BRIGHTNESS_MODE_MANUAL
-            );
-
-            if (hbmNode != null) FileUtils.writeLine(hbmNode, "1");
-            if (backlightNode != null) FileUtils.writeLine(backlightNode, "2047");
-            
-            Settings.System.putInt(
-                    context.getContentResolver(),
-                    Settings.System.SCREEN_BRIGHTNESS,
-                    255
-            );
-        } else {
-            if (hbmNode != null) FileUtils.writeLine(hbmNode, "0");
-
-            int lastBrightness = prefs.getInt("last_brightness", 128);
-            if (backlightNode != null) FileUtils.writeLine(backlightNode, String.valueOf(lastBrightness));
-            
-            Settings.System.putInt(
-                    context.getContentResolver(),
-                    Settings.System.SCREEN_BRIGHTNESS,
-                    lastBrightness
-            );
-
-            int lastBrightnessMode = prefs.getInt("last_brightness_mode",
                     Settings.System.SCREEN_BRIGHTNESS_MODE_MANUAL);
-            Settings.System.putInt(
-                    context.getContentResolver(),
-                    Settings.System.SCREEN_BRIGHTNESS_MODE,
-                    lastBrightnessMode
-            );
+            Settings.System.putInt(context.getContentResolver(),
+                    Settings.System.SCREEN_BRIGHTNESS, 255);
+            if (backlightNode != null) FileUtils.writeLine(backlightNode, "2047");
+        } else {
+            if (!FileUtils.writeLine(hbmNode, "0")) return false;
+            if (prefs.contains("last_brightness")) {
+                Settings.System.putInt(context.getContentResolver(),
+                        Settings.System.SCREEN_BRIGHTNESS, prefs.getInt("last_brightness", 128));
+                String raw = prefs.getString("last_raw_brightness", null);
+                if (backlightNode != null && raw != null) FileUtils.writeLine(backlightNode, raw);
+                Settings.System.putInt(context.getContentResolver(),
+                        Settings.System.SCREEN_BRIGHTNESS_MODE,
+                        prefs.getInt("last_brightness_mode",
+                                Settings.System.SCREEN_BRIGHTNESS_MODE_MANUAL));
+                prefs.edit().remove("last_brightness").remove("last_brightness_mode")
+                        .remove("last_raw_brightness").apply();
+            }
         }
+        return true;
     }
 }

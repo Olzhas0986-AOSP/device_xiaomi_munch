@@ -99,8 +99,8 @@ public class HBMModeTileService extends TileService {
 
         final boolean enabled = !sharedPrefs.getBoolean(HBM_KEY, false);
 
-        HBMModeSwitch.executeHBMAction(this, sharedPrefs, enabled);
-
-        sharedPrefs.edit().putBoolean(HBM_KEY, enabled).apply();
+        if (HBMModeSwitch.executeHBMAction(this, sharedPrefs, enabled)) {
+            sharedPrefs.edit().putBoolean(HBM_KEY, enabled).apply();
+        }
     }
 }

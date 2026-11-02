@@ -35,9 +35,6 @@ public class AutoHBMService extends Service {
     private SharedPreferences mSharedPrefs;
     private boolean dcDimmingEnabled;
 
-    private int mStoredBrightness = -1;
-    private int mStoredBrightnessMode = -1;
-
     public void activateLightSensorRead() {
         if (mSensorManager != null && mLightSensor != null) {
             mSensorManager.registerListener(mSensorEventListener, mLightSensor, SensorManager.SENSOR_DELAY_NORMAL);
@@ -57,37 +54,8 @@ public class AutoHBMService extends Service {
     }
 
     private void enableHBM(boolean enable) {
-        if (enable) {
-            if (mStoredBrightness == -1) {
-                mStoredBrightness = Settings.System.getInt(getContentResolver(),
-                        Settings.System.SCREEN_BRIGHTNESS, 255);
-            }
-            if (mStoredBrightnessMode == -1) {
-                mStoredBrightnessMode = Settings.System.getInt(getContentResolver(),
-                        Settings.System.SCREEN_BRIGHTNESS_MODE,
-                        Settings.System.SCREEN_BRIGHTNESS_MODE_MANUAL);
-            }
-
-            Settings.System.putInt(getContentResolver(),
-                    Settings.System.SCREEN_BRIGHTNESS_MODE,
-                    Settings.System.SCREEN_BRIGHTNESS_MODE_MANUAL);
-
-            FileUtils.writeLine(HBM_NODE, "1");
-            FileUtils.writeLine(BACKLIGHT_NODE, "2047");
-            Settings.System.putInt(getContentResolver(), Settings.System.SCREEN_BRIGHTNESS, 255);
-        } else {
-            FileUtils.writeLine(HBM_NODE, "0");
-            if (mStoredBrightness != -1) {
-                FileUtils.writeLine(BACKLIGHT_NODE, String.valueOf(mStoredBrightness));
-                Settings.System.putInt(getContentResolver(),
-                        Settings.System.SCREEN_BRIGHTNESS, mStoredBrightness);
-                mStoredBrightness = -1;
-            }
-            if (mStoredBrightnessMode != -1) {
-                Settings.System.putInt(getContentResolver(),
-                        Settings.System.SCREEN_BRIGHTNESS_MODE, mStoredBrightnessMode);
-                mStoredBrightnessMode = -1;
-            }
+        if (HBMModeSwitch.executeHBMAction(this, mSharedPrefs, enable)) {
+            mAutoHBMActive = enable;
         }
     }
 

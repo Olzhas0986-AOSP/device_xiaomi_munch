@@ -74,14 +74,17 @@ public final class ThermalUtils {
         WindowManager mWindowManager = context.getSystemService(WindowManager.class);
         mDisplay = mWindowManager.getDefaultDisplay();
 
-        try {
-            mTouchFeature = ITouchFeature.getService();
-        } catch (RemoteException e) {
-            // Do nothing
-        } catch (NoSuchElementException e) {
-            // Do nothing
-        }
+    }
 
+    private boolean ensureTouchFeature() {
+        if (mTouchFeature == null) {
+            try {
+                mTouchFeature = ITouchFeature.getService();
+            } catch (RemoteException | NoSuchElementException e) {
+                return false;
+            }
+        }
+        return mTouchFeature != null;
     }
 
     public static void startService(Context context) {
@@ -198,7 +201,7 @@ public final class ThermalUtils {
         String values = mSharedPrefs.getString(packageName, null);
         resetTouchModes();
 
-        if (values == null || values.isEmpty()) {
+        if (values == null || values.isEmpty() || !ensureTouchFeature()) {
             return;
         }
 
@@ -216,7 +219,8 @@ public final class ThermalUtils {
             mTouchFeature.setTouchMode(Constants.MODE_TOUCH_GAME_MODE, gameMode);
             mTouchFeature.setTouchMode(Constants.MODE_TOUCH_ACTIVE_MODE, touchActiveMode);
         } catch (RemoteException e) {
-            // Do nothing
+            mTouchFeature = null;
+            return;
         }
 
         mTouchModeChanged = true;
@@ -224,7 +228,7 @@ public final class ThermalUtils {
     }
 
     protected void resetTouchModes() {
-        if (!mTouchModeChanged) {
+        if (!mTouchModeChanged || !ensureTouchFeature()) {
             return;
         }
 
@@ -236,14 +240,14 @@ public final class ThermalUtils {
             mTouchFeature.resetTouchMode(Constants.MODE_TOUCH_EDGE_FILTER);
             mTouchFeature.resetTouchMode(Constants.MODE_TOUCH_ROTATION);
         } catch (RemoteException e) {
-            // Do nothing
+            mTouchFeature = null;
         }
 
         mTouchModeChanged = false;
     }
 
     protected void updateTouchRotation() {
-        if (!mTouchModeChanged) {
+        if (!mTouchModeChanged || mDisplay == null || !ensureTouchFeature()) {
             return;
         }
 
@@ -266,7 +270,7 @@ public final class ThermalUtils {
         try {
             mTouchFeature.setTouchMode(Constants.MODE_TOUCH_ROTATION, touchRotation);
         } catch (RemoteException e) {
-            // Do nothing
+            mTouchFeature = null;
         }
     }
 }

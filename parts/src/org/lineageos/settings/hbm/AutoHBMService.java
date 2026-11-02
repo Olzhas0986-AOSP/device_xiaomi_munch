@@ -50,6 +50,7 @@ public class AutoHBMService extends Service {
         }
         if (mDisableRunnable != null) {
             mHandler.removeCallbacks(mDisableRunnable);
+            mDisableRunnable = null;
         }
         mAutoHBMActive = false;
         enableHBM(false);
@@ -109,22 +110,19 @@ public class AutoHBMService extends Service {
             if (lux > luxThreshold) {
                 if (mDisableRunnable != null) {
                     mHandler.removeCallbacks(mDisableRunnable);
+            mDisableRunnable = null;
                 }
                 if ((!mAutoHBMActive || !isCurrentlyEnabled()) && !keyguardShowing && !dcDimmingEnabled) {
                     mAutoHBMActive = true;
                     enableHBM(true);
                 }
-            } else { // lux < luxThreshold
-                if (mAutoHBMActive) {
-                    if (mDisableRunnable != null) {
-                        mHandler.removeCallbacks(mDisableRunnable);
-                    }
-                    mDisableRunnable = () -> {
-                        mAutoHBMActive = false;
-                        enableHBM(false);
-                    };
-                    mHandler.postDelayed(mDisableRunnable, timeToDisableHBM * 1000);
-                }
+            } else if (mAutoHBMActive && mDisableRunnable == null) {
+                mDisableRunnable = () -> {
+                    mDisableRunnable = null;
+                    mAutoHBMActive = false;
+                    enableHBM(false);
+                };
+                mHandler.postDelayed(mDisableRunnable, timeToDisableHBM * 1000);
             }
         }
 

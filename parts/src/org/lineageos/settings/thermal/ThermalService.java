@@ -25,6 +25,9 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
+
+import androidx.preference.PreferenceManager;
 import android.content.res.Configuration;
 import android.os.Handler;
 import android.os.IBinder;
@@ -41,6 +44,14 @@ public class ThermalService extends Service {
     private IActivityTaskManager mActivityTaskManager;
     private boolean mScreenOn;
     private boolean mDestroyed;
+    private String mCurrentPackage = "";
+    private SharedPreferences mPrefs;
+    private final SharedPreferences.OnSharedPreferenceChangeListener mPrefsListener =
+            (prefs, key) -> {
+                if ("thermal_control".equals(key) || mCurrentPackage.equals(key)) {
+                    scheduleUpdate();
+                }
+            };
 
     private final BroadcastReceiver mScreenReceiver = new BroadcastReceiver() {
         @Override
@@ -61,6 +72,8 @@ public class ThermalService extends Service {
     public void onCreate() {
         super.onCreate();
         mThermalUtils = new ThermalUtils(this);
+        mPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+        mPrefs.registerOnSharedPreferenceChangeListener(mPrefsListener);
         mScreenOn = getSystemService(PowerManager.class).isInteractive();
         mActivityTaskManager = ActivityTaskManager.getService();
         try {
@@ -90,6 +103,7 @@ public class ThermalService extends Service {
             RootTaskInfo info = mActivityTaskManager.getFocusedRootTaskInfo();
             String packageName = info == null || info.topActivity == null
                     ? "" : info.topActivity.getPackageName();
+            mCurrentPackage = packageName;
             mThermalUtils.setThermalProfile(packageName);
         } catch (RemoteException e) {
             Log.w(TAG, "Unable to read the foreground task", e);
@@ -105,6 +119,7 @@ public class ThermalService extends Service {
     @Override
     public void onDestroy() {
         mDestroyed = true;
+        mPrefs.unregisterOnSharedPreferenceChangeListener(mPrefsListener);
         try {
             mActivityTaskManager.unregisterTaskStackListener(mTaskListener);
         } catch (RemoteException e) {

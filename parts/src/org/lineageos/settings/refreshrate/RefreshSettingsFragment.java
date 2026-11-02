@@ -154,16 +154,7 @@ public class RefreshSettingsFragment extends SettingsBasePreferenceFragment
 
     @Override
     public void setDivider(@androidx.annotation.Nullable final Drawable divider) {
-        RecyclerView list = getListView();
-        if (list == null) {
-            View root = getView();
-            if (root != null) {
-                root.post(() -> setDivider(divider));
-            }
-            return;
-        }
-
-        super.setDivider(divider);
+        // This screen uses its own RecyclerView rather than the preference list.
     }
 
     private void handleAppEntries(List<ApplicationsState.AppEntry> entries) {

@@ -23,6 +23,16 @@ public class ThermalUtilsTest {
   if(!ITouchFeature.service.modes.isEmpty()) throw new AssertionError("Touch profile leaked into another app");
   context.prefs.edit().putString("com.game","1,bad").commit();
   utils.setThermalProfile("com.game");
+  utils.resetTouchModes();
+  ITouchFeature.service.failAt=ITouchFeature.service.calls+1;
+  utils.setThermalProfile("com.game"); // One HAL write succeeds before the next fails.
+  utils.setThermalProfile("com.other");
+  if(!ITouchFeature.service.modes.isEmpty()) throw new AssertionError("Partially applied modes were not reset");
+  utils.setThermalProfile("com.game");
+  ITouchFeature.service.failAt=ITouchFeature.service.calls+1;
+  utils.resetTouchModes(); // Retry a partially failed reset on the next update.
+  utils.setThermalProfile("com.other");
+  if(!ITouchFeature.service.modes.isEmpty()) throw new AssertionError("Failed reset was not retried");
   System.out.println("ThermalUtils missing-HAL/game-toggle/reset tests passed");
  }
 }

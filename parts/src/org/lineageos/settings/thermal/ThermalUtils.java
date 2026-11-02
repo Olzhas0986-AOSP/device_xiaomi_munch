@@ -213,6 +213,7 @@ public final class ThermalUtils {
         int touchActiveMode = (gameMode == 1 && touchResponse != 0
                 && touchSensitivity != 0 && touchResistant != 0)
                 ? 1 : 0;
+        mTouchModeChanged = true;
         try {
             mTouchFeature.setTouchMode(Constants.MODE_TOUCH_TOLERANCE, touchSensitivity);
             mTouchFeature.setTouchMode(Constants.MODE_TOUCH_UP_THRESHOLD, touchResponse);
@@ -224,7 +225,6 @@ public final class ThermalUtils {
             return;
         }
 
-        mTouchModeChanged = true;
         updateTouchRotation();
     }
 
@@ -242,6 +242,7 @@ public final class ThermalUtils {
             mTouchFeature.resetTouchMode(Constants.MODE_TOUCH_ROTATION);
         } catch (RemoteException e) {
             mTouchFeature = null;
+            return;
         }
 
         mTouchModeChanged = false;

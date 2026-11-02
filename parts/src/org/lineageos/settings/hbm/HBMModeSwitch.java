@@ -65,7 +65,8 @@ public class HBMModeSwitch implements OnPreferenceChangeListener {
         if (hbmNode == null) return false;
 
         if (enabled) {
-            if (!prefs.contains("last_brightness")) {
+            boolean createdBackup = !prefs.contains("last_brightness");
+            if (createdBackup) {
                 int brightness = Settings.System.getInt(context.getContentResolver(),
                         Settings.System.SCREEN_BRIGHTNESS, 128);
                 int mode = Settings.System.getInt(context.getContentResolver(),
@@ -76,7 +77,13 @@ public class HBMModeSwitch implements OnPreferenceChangeListener {
                         .putInt("last_brightness_mode", mode)
                         .putString("last_raw_brightness", raw).commit()) return false;
             }
-            if (!FileUtils.writeLine(hbmNode, "1")) return false;
+            if (!FileUtils.writeLine(hbmNode, "1")) {
+                if (createdBackup) {
+                    prefs.edit().remove("last_brightness").remove("last_brightness_mode")
+                            .remove("last_raw_brightness").apply();
+                }
+                return false;
+            }
             Settings.System.putInt(context.getContentResolver(),
                     Settings.System.SCREEN_BRIGHTNESS_MODE,
                     Settings.System.SCREEN_BRIGHTNESS_MODE_MANUAL);

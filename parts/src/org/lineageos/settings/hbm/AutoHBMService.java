@@ -16,6 +16,7 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.os.PowerManager;
 import androidx.preference.PreferenceManager;
+import org.lineageos.settings.utils.ProfileUtils;
 
 public class AutoHBMService extends Service {
     private final Handler mHandler = new Handler(Looper.getMainLooper());
@@ -89,9 +90,10 @@ public class AutoHBMService extends Service {
                 disableAutomaticHBM();
                 return;
             }
-            float threshold = Float.parseFloat(mPrefs.getString(
-                    HBMFragment.AUTO_HBM_THRESHOLD_KEY, "7000"));
-            long delay = Long.parseLong(mPrefs.getString(HBMFragment.HBM_DISABLE_TIME_KEY, "1"));
+            int threshold = ProfileUtils.boundedInt(mPrefs.getString(
+                    HBMFragment.AUTO_HBM_THRESHOLD_KEY, "7000"), 7000, 0, 60000);
+            long delay = ProfileUtils.boundedInt(mPrefs.getString(
+                    HBMFragment.HBM_DISABLE_TIME_KEY, "1"), 1, 1, 10);
             if (event.values[0] > threshold) {
                 cancelTimeout();
                 if (!mAutoHBMActive) {

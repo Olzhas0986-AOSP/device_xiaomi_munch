@@ -10,6 +10,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.AttributeSet;
 import androidx.preference.PreferenceManager;
+import org.lineageos.settings.utils.ProfileUtils;
 
 public class AutoHBMTimePreference extends CustomSeekBarPreference {
 
@@ -29,7 +30,7 @@ public class AutoHBMTimePreference extends CustomSeekBarPreference {
         mDefaultValueExists = true;
         mDefaultValue = mDefVal;
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(getContext());
-        mValue = Integer.parseInt(sharedPrefs.getString(HBMFragment.HBM_DISABLE_TIME_KEY, "1"));
+        mValue = ProfileUtils.boundedInt(sharedPrefs.getString(HBMFragment.HBM_DISABLE_TIME_KEY, "1"), 1, 1, 10);
 
         setPersistent(false);
     }

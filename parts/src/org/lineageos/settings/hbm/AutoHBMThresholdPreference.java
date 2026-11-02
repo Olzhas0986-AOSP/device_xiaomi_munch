@@ -21,6 +21,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.AttributeSet;
 import androidx.preference.PreferenceManager;
+import org.lineageos.settings.utils.ProfileUtils;
 
 public class AutoHBMThresholdPreference extends CustomSeekBarPreference {
 
@@ -40,7 +41,7 @@ public class AutoHBMThresholdPreference extends CustomSeekBarPreference {
         mDefaultValueExists = true;
         mDefaultValue = mDefVal;
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(getContext());
-        mValue = Integer.parseInt(sharedPrefs.getString(HBMFragment.AUTO_HBM_THRESHOLD_KEY, "7000"));
+        mValue = ProfileUtils.boundedInt(sharedPrefs.getString(HBMFragment.AUTO_HBM_THRESHOLD_KEY, "7000"), 7000, 0, 60000);
 
         setPersistent(false);
     }

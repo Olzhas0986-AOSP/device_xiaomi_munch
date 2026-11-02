@@ -52,4 +52,11 @@ public final class ProfileUtils {
         }
         return result;
     }
+    public static int boundedInt(String value, int fallback, int min, int max) {
+        try {
+            return Math.max(min, Math.min(max, Integer.parseInt(value)));
+        } catch (NumberFormatException e) {
+            return fallback;
+        }
+    }
 }

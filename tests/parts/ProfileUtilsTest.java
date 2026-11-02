@@ -28,6 +28,11 @@ public class ProfileUtilsTest {
         if (!java.util.Arrays.equals(new int[4], ProfileUtils.parseTouchProfile(null))) {
             throw new AssertionError("Missing touch profile was not defaulted");
         }
+        if (ProfileUtils.boundedInt("bad", 7000, 0, 60000) != 7000
+                || ProfileUtils.boundedInt("-5", 1, 1, 10) != 1
+                || ProfileUtils.boundedInt("999", 1, 1, 10) != 10) {
+            throw new AssertionError("Invalid AutoHBM numeric preference");
+        }
         System.out.println("ProfileUtils tests passed");
     }
 }

@@ -101,7 +101,6 @@ public class ThermalService extends Service {
     private void setThermalProfile() {
         if (mScreenOn) {
             mThermalUtils.setThermalProfile(mCurrentApp);
-            mThermalUtils.resetTouchModes();
 
         } else {
             mThermalUtils.setDefaultThermalProfile();

@@ -30,6 +30,7 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/device_settings_app_name"
         android:persistent="true"
+        android:enableOnBackInvokedCallback="true"
         android:theme="@style/Theme.SubSettingsBase">
 
         <receiver

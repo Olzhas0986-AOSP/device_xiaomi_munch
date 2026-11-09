@@ -38,6 +38,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
@@ -96,6 +97,7 @@ public class ThermalSettingsFragment extends SettingsBasePreferenceFragment
 
         mAppsRecyclerView = view.findViewById(R.id.thermal_rv_view);
         mAppsRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+        mAppsRecyclerView.setItemAnimator(null);
         mAppsRecyclerView.setAdapter(mAllPackagesAdapter);
     }
 
@@ -308,6 +310,7 @@ public class ThermalSettingsFragment extends SettingsBasePreferenceFragment
 
         public AllPackagesAdapter(Context context) {
             mActivityFilter = new ActivityFilter(context.getPackageManager());
+            setHasStableIds(true);
         }
 
         @Override
@@ -348,6 +351,12 @@ public class ThermalSettingsFragment extends SettingsBasePreferenceFragment
                     bundle.putString("packageName", entry.info.packageName);
                     touchSettingsFragment.setArguments(bundle);
                     getActivity().getSupportFragmentManager().beginTransaction()
+                            .setReorderingAllowed(true)
+                            .setCustomAnimations(
+                                    R.animator.fragment_open_enter,
+                                    R.animator.fragment_open_exit,
+                                    R.animator.fragment_close_enter,
+                                    R.animator.fragment_close_exit)
                             .replace(R.id.content_frame, touchSettingsFragment, "touchSettingsFragment")
                             .addToBackStack(null)
                             .commit();
@@ -374,13 +383,37 @@ public class ThermalSettingsFragment extends SettingsBasePreferenceFragment
 
         private void setEntries(List<ApplicationsState.AppEntry> entries,
                                 List<String> sections, List<Integer> positions) {
-            mEntries = entries;
+            final List<ApplicationsState.AppEntry> oldEntries = mEntries;
+            final List<ApplicationsState.AppEntry> newEntries = new ArrayList<>(entries);
+            final DiffUtil.DiffResult diff = DiffUtil.calculateDiff(new DiffUtil.Callback() {
+                @Override
+                public int getOldListSize() {
+                    return oldEntries.size();
+                }
+
+                @Override
+                public int getNewListSize() {
+                    return newEntries.size();
+                }
+
+                @Override
+                public boolean areItemsTheSame(int oldPos, int newPos) {
+                    return oldEntries.get(oldPos).id == newEntries.get(newPos).id;
+                }
+
+                @Override
+                public boolean areContentsTheSame(int oldPos, int newPos) {
+                    return TextUtils.equals(oldEntries.get(oldPos).label,
+                            newEntries.get(newPos).label);
+                }
+            });
+            mEntries = newEntries;
             mSections = sections.toArray(new String[sections.size()]);
             mPositions = new int[positions.size()];
             for (int i = 0; i < positions.size(); i++) {
                 mPositions[i] = positions.get(i);
             }
-            notifyDataSetChanged();
+            diff.dispatchUpdatesTo(this);
         }
 
 

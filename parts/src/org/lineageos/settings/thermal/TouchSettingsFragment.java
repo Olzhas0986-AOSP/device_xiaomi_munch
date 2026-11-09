@@ -81,7 +81,7 @@ public class TouchSettingsFragment extends SettingsBasePreferenceFragment
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
-            getActivity().onBackPressed();
+            requireActivity().getOnBackPressedDispatcher().onBackPressed();
             return true;
         }
         return false;

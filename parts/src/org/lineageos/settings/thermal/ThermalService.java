@@ -16,15 +16,12 @@
 
 package org.lineageos.settings.thermal;
 
-import android.app.ActivityManager;
 import android.app.ActivityTaskManager;
 import android.app.ActivityTaskManager.RootTaskInfo;
 import android.app.IActivityTaskManager;
-import android.app.TaskStackListener;
 import android.app.Service;
 import android.app.TaskStackListener;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -46,7 +43,12 @@ public class ThermalService extends Service {
         @Override
         public void onReceive(Context context, Intent intent) {
             mPreviousApp = "";
-            mThermalUtils.setDefaultThermalProfile();
+            if (Intent.ACTION_SCREEN_ON.equals(intent.getAction())) {
+                // Re-apply the profile of the app that is still in foreground
+                updateForegroundApp();
+            } else {
+                mThermalUtils.setDefaultThermalProfile();
+            }
         }
     };
 
@@ -82,21 +84,31 @@ public class ThermalService extends Service {
         this.registerReceiver(mIntentReceiver, filter);
     }
 
+    private void updateForegroundApp() {
+        if (mActivityTaskManager == null) {
+            return;
+        }
+
+        try {
+            final RootTaskInfo info = mActivityTaskManager.getFocusedRootTaskInfo();
+            if (info == null || info.topActivity == null) {
+                return;
+            }
+
+            String foregroundApp = info.topActivity.getPackageName();
+            if (!foregroundApp.equals(mPreviousApp)) {
+                mThermalUtils.setThermalProfile(foregroundApp);
+                mPreviousApp = foregroundApp;
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to update thermal profile", e);
+        }
+    }
+
     private final TaskStackListener mTaskListener = new TaskStackListener() {
         @Override
         public void onTaskStackChanged() {
-            try {
-                final RootTaskInfo info = mActivityTaskManager.getFocusedRootTaskInfo();
-                if (info == null || info.topActivity == null) {
-                    return;
-                }
-
-                String foregroundApp = info.topActivity.getPackageName();
-                if (!foregroundApp.equals(mPreviousApp)) {
-                    mThermalUtils.setThermalProfile(foregroundApp);
-                    mPreviousApp = foregroundApp;
-                }
-            } catch (Exception e) {}
+            updateForegroundApp();
         }
     };
 }

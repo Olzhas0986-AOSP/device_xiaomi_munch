@@ -24,14 +24,12 @@ import android.content.pm.ResolveInfo;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.SectionIndexer;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -78,7 +76,7 @@ public class ThermalSettingsFragment extends SettingsBasePreferenceFragment
         mSession.onResume();
         mActivityFilter = new ActivityFilter(getActivity().getPackageManager());
 
-        mAllPackagesAdapter = new AllPackagesAdapter(getActivity());
+        mAllPackagesAdapter = new AllPackagesAdapter();
 
         mThermalUtils = new ThermalUtils(getActivity());
     }
@@ -155,12 +153,9 @@ public class ThermalSettingsFragment extends SettingsBasePreferenceFragment
 
     @Override
     public void setDivider(@androidx.annotation.Nullable final Drawable divider) {
-        RecyclerView list = getListView();
-        if (list == null) {
-            View root = getView();
-            if (root != null) {
-                root.post(() -> setDivider(divider));
-            }
+        // This fragment inflates its own layout, so the preference list is never
+        // created. Skip the divider instead of deferring it forever.
+        if (getListView() == null) {
             return;
         }
 
@@ -176,7 +171,7 @@ public class ThermalSettingsFragment extends SettingsBasePreferenceFragment
 
         for (int i = 0; i < entries.size(); i++) {
             final ApplicationInfo info = entries.get(i).info;
-            final String label = (String) info.loadLabel(pm);
+            final String label = info.loadLabel(pm).toString();
             final String sectionIndex;
 
             if (!info.enabled) {
@@ -302,10 +297,6 @@ public class ThermalSettingsFragment extends SettingsBasePreferenceFragment
         private List<ApplicationsState.AppEntry> mEntries = new ArrayList<>();
         private String[] mSections;
         private int[] mPositions;
-
-        public AllPackagesAdapter(Context context) {
-            mActivityFilter = new ActivityFilter(context.getPackageManager());
-        }
 
         @Override
         public int getItemCount() {
@@ -436,13 +427,9 @@ public class ThermalSettingsFragment extends SettingsBasePreferenceFragment
 
         @Override
         public boolean filterApp(ApplicationsState.AppEntry entry) {
-            boolean show = !mAllPackagesAdapter.mEntries.contains(entry.info.packageName);
-            if (show) {
-                synchronized (mLauncherResolveInfoList) {
-                    show = mLauncherResolveInfoList.contains(entry.info.packageName);
-                }
+            synchronized (mLauncherResolveInfoList) {
+                return mLauncherResolveInfoList.contains(entry.info.packageName);
             }
-            return show;
         }
     }
 }

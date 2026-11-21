@@ -4,11 +4,18 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
+# A/B
+TARGET_IS_VAB := true
+
 # Setup dalvik vm configs
 $(call inherit-product, frameworks/native/build/phone-xhdpi-6144-dalvik-heap.mk)
 
 # Add common definitions for Qualcomm
 $(call inherit-product, hardware/qcom-caf/common/common.mk)
+
+# AAPT
+PRODUCT_AAPT_CONFIG := normal
+PRODUCT_AAPT_PREF_CONFIG := xxhdpi
 
 # Permissions
 PRODUCT_COPY_FILES += \
@@ -139,10 +146,18 @@ PRODUCT_COPY_FILES += \
 
 $(call soong_config_set_bool,android_hardware_audio,skip_speaker_layout_channel_mask_field,true)
 
+# Boot animation
+TARGET_SCREEN_HEIGHT := 2400
+TARGET_SCREEN_WIDTH := 1080
+
 # Camera
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/camera/camera_cnf.txt:$(TARGET_COPY_OUT_VENDOR)/etc/camera/camera_cnf.txt
+
 PRODUCT_PACKAGES += \
     android.hardware.camera.provider@2.4-impl \
-    android.hardware.camera.provider@2.4-service_64
+    android.hardware.camera.provider@2.4-service_64 \
+    libpiex_shim
 
 # Consumer IR
 ifneq ($(TARGET_IS_TABLET),true)
@@ -217,6 +232,7 @@ PRODUCT_PACKAGES += \
 
 # Init
 $(call soong_config_set,libinit,vendor_init_lib,//$(LOCAL_PATH):init_xiaomi_kona)
+$(call soong_config_set,xiaomi_kona,variant_lib,//$(LOCAL_PATH):libvariant_xiaomi_munch)
 
 # Input
 PRODUCT_PACKAGES += \
@@ -282,6 +298,15 @@ PRODUCT_PACKAGES += \
     TelephonyOverlayCommon \
     WifiResourcesOverlayCommon
 
+PRODUCT_PACKAGES += \
+    ApertureOverlayDevice \
+    FrameworkResOverlayDevice \
+    LineageDialerOverlayDevice \
+    LineageSettingsOverlayDevice \
+    LineageSystemUIOverlayDevice \
+    SettingsOverlayDevice \
+    SystemUIOverlayDevice
+
 PRODUCT_ENFORCE_RRO_TARGETS := *
 
 # Partitions
@@ -331,6 +356,9 @@ PRODUCT_PACKAGES += \
     init.target.rc \
     init.xiaomi.rc \
     ueventd.qcom.rc
+
+# Shipping API level
+PRODUCT_SHIPPING_API_LEVEL := 31
 
 # Sensors
 PRODUCT_PACKAGES += \
@@ -409,4 +437,4 @@ PRODUCT_PACKAGES += \
     libwfdaac_vendor
 
 # Inherit the proprietary files
-$(call inherit-product, vendor/xiaomi/sm8250-common/sm8250-common-vendor.mk)
+$(call inherit-product, vendor/xiaomi/munch/munch-vendor.mk)
